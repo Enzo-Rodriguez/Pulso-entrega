@@ -5,6 +5,7 @@ require_once "conexion.php";
 // Une paciente con persona para obtener en una sola consulta todos los datos del listado.
 $resultado = $conexion->query(
     "SELECT
+        pa.id_paciente,
         DATE_FORMAT(pa.fecha_registro, '%d/%m/%Y %H:%i') AS fecha_registro,
         pa.estado,
         pa.patologia,
@@ -100,6 +101,7 @@ $estados = [
                 <th>Patología</th>
                 <th>Estado</th>
                 <th>Fecha de registro</th>
+                <th>Acción</th>
               </tr>
             </thead>
             <tbody>

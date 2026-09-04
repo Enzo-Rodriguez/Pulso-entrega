@@ -4,7 +4,7 @@
 $servidor = "localhost";
 $usuario = "root";
 $contrasena = "";
-$base_datos = "pulso";
+$base_datos = "pulso_entrega";
 
 // Hace que MySQL lance excepciones; permite controlar los errores con try/catch.
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
