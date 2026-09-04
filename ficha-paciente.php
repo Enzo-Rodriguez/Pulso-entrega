@@ -94,7 +94,7 @@ $estadoVisible = (int) $paciente["activo"] === 1
           <a class="boton" href="editar-pacientes.php?id=<?= llamar($paciente["id_paciente"]) ?>">
             Editar paciente
           </a>
-          <a class="boton_rojo"> Eliminar paciente</a>
+          <a class="boton_rojo" href="eliminar_paciente.php?id=<?= llamar($paciente["id_paciente"]) ?>"> Eliminar paciente          </a>
         </div>
       </section>
 
