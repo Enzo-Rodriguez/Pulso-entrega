@@ -5,18 +5,18 @@ require_once "conexion.php";
 // Une paciente con persona para obtener en una sola consulta todos los datos del listado.
 $resultado = $conexion->query(
     "SELECT
-        pa.id_paciente,
-        DATE_FORMAT(pa.fecha_registro, '%d/%m/%Y %H:%i') AS fecha_registro,
-        pa.estado,
-        pa.patologia,
-        pa.activo,
-        pe.ci,
-        pe.nombres,
-        pe.apellidos,
-        pe.telefono
-     FROM paciente AS pa
-     INNER JOIN persona AS pe ON pe.id_persona = pa.id_persona
-     ORDER BY pa.id_paciente DESC"
+        paciente.id_paciente,
+        DATE_FORMAT(paciente.fecha_registro, '%d/%m/%Y %H:%i') AS fecha_registro,
+        paciente.estado,
+        paciente.patologia,
+        paciente.activo,
+        persona.ci,
+        persona.nombres,
+        persona.apellidos,
+        persona.telefono
+     FROM paciente
+     INNER JOIN persona ON persona.id_persona = paciente.id_persona
+     ORDER BY paciente.id_paciente DESC"
 );
 
 // Convierte el resultado de MySQL en un arreglo que PHP puede recorrer.

@@ -18,20 +18,20 @@ function escapar($valor): string
 // Primero se consulta el registro para conocer también el id de la persona relacionada.
 $consulta = $conexion->prepare(
     "SELECT
-        pa.id_persona,
-        pa.estado,
-        pa.patologia,
-        pe.nombres,
-        pe.apellidos,
-        pe.ci,
-        pe.fecha_nacimiento,
-        pe.sexo,
-        pe.telefono,
-        pe.direccion,
-        pe.email
-     FROM paciente AS pa
-     INNER JOIN persona AS pe ON pe.id_persona = pa.id_persona
-     WHERE pa.id_paciente = ?"
+        paciente.id_persona,
+        paciente.estado,
+        paciente.patologia,
+        persona.nombres,
+        persona.apellidos,
+        persona.ci,
+        persona.fecha_nacimiento,
+        persona.sexo,
+        persona.telefono,
+        persona.direccion,
+        persona.email
+     FROM paciente
+     INNER JOIN persona ON persona.id_persona = paciente.id_persona
+     WHERE paciente.id_paciente = ?"
 );
 $consulta->bind_param("i", $idPaciente);
 $consulta->execute();
