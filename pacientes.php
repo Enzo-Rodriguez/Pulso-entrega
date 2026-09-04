@@ -128,6 +128,7 @@ $estados = [
                   <td><?= escapar($paciente["patologia"] ?: "Sin especificar") ?></td>
                   <td><span class="estado <?= escapar($estadoPaciente[1]) ?>"><?= escapar($estadoPaciente[0]) ?></span></td>
                   <td><?= escapar($paciente["fecha_registro"]) ?></td>
+                  <td><a href="ficha-paciente.php?id=<?php echo $paciente['id_paciente']; ?>">Ver ficha</a></td>
                 </tr>
               <?php endforeach; ?>
             </tbody>
