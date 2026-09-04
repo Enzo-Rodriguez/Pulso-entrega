@@ -13,22 +13,22 @@ if ($idPaciente === false || $idPaciente === null || $idPaciente < 1) {
 // La consulta preparada evita que el id recibido se interprete como parte del SQL.
 $consulta = $conexion->prepare(
     "SELECT
-        pa.id_paciente,
-        DATE_FORMAT(pa.fecha_registro, '%d/%m/%Y %H:%i') AS fecha_registro,
-        pa.estado,
-        pa.patologia,
-        pa.activo,
-        pe.ci,
-        pe.nombres,
-        pe.apellidos,
-        pe.fecha_nacimiento,
-        pe.sexo,
-        pe.telefono,
-        pe.direccion,
-        pe.email
-     FROM paciente AS pa
-     INNER JOIN persona AS pe ON pe.id_persona = pa.id_persona
-     WHERE pa.id_paciente = ?"
+        paciente.id_paciente,
+        DATE_FORMAT(paciente.fecha_registro, '%d/%m/%Y %H:%i') AS fecha_registro,
+        paciente.estado,
+        paciente.patologia,
+        paciente.activo,
+        persona.ci,
+        persona.nombres,
+        persona.apellidos,
+        persona.fecha_nacimiento,
+        persona.sexo,
+        persona.telefono,
+        persona.direccion,
+        persona.email
+     FROM paciente
+     INNER JOIN persona ON persona.id_persona = paciente.id_persona
+     WHERE paciente.id_paciente = ?"
 );
 $consulta->bind_param("i", $idPaciente);
 $consulta->execute();
@@ -41,7 +41,7 @@ if ($paciente === null) {
     die("Paciente no encontrado.");
 }
 
-function escapar($valor): string
+function llamar($valor): string
 {
     return htmlspecialchars((string) ($valor ?? ""), ENT_QUOTES, "UTF-8");
 }
@@ -86,12 +86,12 @@ $estadoVisible = (int) $paciente["activo"] === 1
       <section class="encabezado-pagina">
         <div>
           <p class="subtitulo">Ficha del paciente</p>
-          <h1><?= escapar($paciente["nombres"] . " " . $paciente["apellidos"]) ?></h1>
+          <h1><?= llamar($paciente["nombres"] . " " . $paciente["apellidos"]) ?></h1>
           <p>Información registrada en el sistema PULSO.</p>
         </div>
         <div class="acciones">
           <a class="boton boton-secundario" href="pacientes.php">Volver</a>
-          <a class="boton" href="editar-pacientes.php?id=<?= escapar($paciente["id_paciente"]) ?>">
+          <a class="boton" href="editar-pacientes.php?id=<?= llamar($paciente["id_paciente"]) ?>">
             Editar paciente
           </a>
         </div>
@@ -101,39 +101,39 @@ $estadoVisible = (int) $paciente["activo"] === 1
         <dl class="detalle-paciente">
           <div>
             <dt>Cédula de identidad</dt>
-            <dd><?= escapar($paciente["ci"]) ?></dd>
+            <dd><?= llamar($paciente["ci"]) ?></dd>
           </div>
           <div>
             <dt>Teléfono</dt>
-            <dd><?= escapar($paciente["telefono"] ?: "Sin especificar") ?></dd>
+            <dd><?= llamar($paciente["telefono"] ?: "Sin especificar") ?></dd>
           </div>
           <div>
             <dt>Fecha de nacimiento</dt>
-            <dd><?= escapar($paciente["fecha_nacimiento"] ?: "Sin especificar") ?></dd>
+            <dd><?= llamar($paciente["fecha_nacimiento"] ?: "Sin especificar") ?></dd>
           </div>
           <div>
             <dt>Sexo</dt>
-            <dd><?= escapar($paciente["sexo"] ?: "Sin especificar") ?></dd>
+            <dd><?= llamar($paciente["sexo"] ?: "Sin especificar") ?></dd>
           </div>
           <div class="detalle-ancho">
             <dt>Dirección</dt>
-            <dd><?= escapar($paciente["direccion"] ?: "Sin especificar") ?></dd>
+            <dd><?= llamar($paciente["direccion"] ?: "Sin especificar") ?></dd>
           </div>
           <div class="detalle-ancho">
             <dt>Correo electrónico</dt>
-            <dd><?= escapar($paciente["email"] ?: "Sin especificar") ?></dd>
+            <dd><?= llamar($paciente["email"] ?: "Sin especificar") ?></dd>
           </div>
           <div class="detalle-ancho">
             <dt>Patología o motivo de atención</dt>
-            <dd><?= escapar($paciente["patologia"] ?: "Sin especificar") ?></dd>
+            <dd><?= llamar($paciente["patologia"] ?: "Sin especificar") ?></dd>
           </div>
           <div>
             <dt>Estado</dt>
-            <dd><?= escapar($estadoVisible) ?></dd>
+            <dd><?= llamar($estadoVisible) ?></dd>
           </div>
           <div>
             <dt>Fecha de registro</dt>
-            <dd><?= escapar($paciente["fecha_registro"]) ?></dd>
+            <dd><?= llamar($paciente["fecha_registro"]) ?></dd>
           </div>
         </dl>
       </section>
