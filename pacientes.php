@@ -101,7 +101,7 @@ $estados = [
                 <th>Patología</th>
                 <th>Estado</th>
                 <th>Fecha de registro</th>
-                <th>Acción</th>
+                <th>Ficha</th>
               </tr>
             </thead>
             <tbody>
