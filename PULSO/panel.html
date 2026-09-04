@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PULSO - Panel</title>
+    <link rel="stylesheet" href="estilos.css">
+    <link rel="icon" type="image/png" href="recursos/logo-pulsoA.png">
+  </head>
+  <body>
+    <header class="barra-superior">
+      <a class="marca" href="panel.html">
+        <img src="recursos/logo-pulsoA.png" alt="">
+        <span>PULSO</span>
+      </a>
+      <nav class="navegacion" aria-label="Páginas principales">
+        <a class="enlace-activo" href="panel.html">Panel</a>
+        <a href="pacientes.php">Pacientes</a>
+        <a href="documentos.html">Documentos</a>
+        <a href="ambulancia.html">Ambulancias</a>
+        <a href="index.html">Inicio</a>
+      </nav>
+    </header>
+
+    <main class="pagina">
+      <section class="encabezado-pagina">
+        <div>
+          <p class="subtitulo">Panel principal</p>
+          <h1>PULSO</h1>
+          <p>Acceso a los módulos del sistema.</p>
+        </div>
+      </section>
+
+      <section class="rejilla">
+        <a class="tarjeta modulo" href="pacientes.php">
+          <h2>Pacientes</h2>
+          <p>Registrar y consultar pacientes.</p>
+        </a>
+        <a class="tarjeta modulo" href="documentos.html"> 
+          <h2>Documentos</h2>
+          <p>Registrar y administrar documentos.</p>
+        </a>
+        <a class="tarjeta modulo" href="ambulancia.html">
+          <h2>Ambulancias</h2>
+          <p>Módulo preparado para desarrollar unidades y traslados.</p>
+        </a>
+      </section>
+    </main>
+  </body>
+
+</html>
