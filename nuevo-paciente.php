@@ -16,6 +16,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $estado = trim($_POST["estado"] ?? "");
     $direccion = trim($_POST["direccion"] ?? "");
     $patologia = trim($_POST["patologia"] ?? "");
+    $email = trim($_POST["email"] ?? "");
 
     // Listas cerradas para impedir valores que no existen en los select del formulario.
     $sexosValidos = ["masculino", "femenino", "otro"];
@@ -42,10 +43,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             // Guarda primero los datos personales.
             $conexion->query(
                 "INSERT INTO persona
-                    (nombres, apellidos, ci, telefono, fecha_nacimiento, sexo, direccion)
+                    (nombres, apellidos, ci, telefono, fecha_nacimiento, sexo, direccion, email)
                  VALUES
                     ('$nombres', '$apellidos', '$ci', '$telefono',
-                     $fechaNacimientoParaSQL, '$sexo', '$direccion')"
+                     $fechaNacimientoParaSQL, '$sexo', '$direccion', '$email')"
             );
 
             // Recupera el id generado para relacionar ambas tablas.
@@ -159,6 +160,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
           <label class="campo-completo" for="direccion">
             Dirección
             <input id="direccion" type="text" name="direccion">
+          </label>
+          <label class="campo-completo" for="email">
+            Correo electrónico
+            <input id="email" type="email" name="email">
           </label>
 
           <label class="campo-completo" for="patologia">
