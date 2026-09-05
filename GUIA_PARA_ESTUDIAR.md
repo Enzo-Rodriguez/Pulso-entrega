@@ -23,26 +23,19 @@ Esta guía explica la parte funcional del proyecto. No describe etiquetas HTML n
 | `trim(...)` | Elimina espacios al comienzo y al final. | Evita guardar nombres como `"  Ana  "`. | Opcional, pero útil y simple. |
 | `$sexosValidos` y `$estadosValidos` | Funcionan como listas permitidas para validar los datos. | Impiden recibir valores inventados o modificados desde fuera del formulario. | Se podrían reemplazar por condiciones más largas; así está más claro. |
 | Validación con `if` | Comprueba los campos obligatorios y los valores permitidos. | Evita guardar un paciente sin nombre, cédula o estado válido. | No. El atributo HTML `required` no reemplaza la validación de PHP. |
-| `begin_transaction()` | Inicia una transacción que agrupa los dos `INSERT`. | Persona y paciente se guardan juntos o no se guarda ninguno. | Técnicamente se puede borrar, pero podría quedar una persona sin paciente si falla el segundo paso. Mantener. |
 | Convertir la fecha vacía en `null` | Envía un valor SQL nulo cuando la fecha opcional no fue completada. | Le dice a MySQL “no conocemos esta fecha” en vez de mandarle una fecha vacía. | Es necesario mientras la fecha sea opcional. |
-| `prepare(...)` | Prepara el SQL con signos `?` separados de los datos. | Arma la consulta dejando huecos seguros para lo que escribió el usuario. | No conviene reemplazarlo por texto concatenado: sería menos seguro. |
-| `bind_param("sssssss", ...)` | Asocia siete valores de tipo string con los siete `?` de persona. | Coloca cada dato en su hueco; cada `s` significa texto. | No si se mantiene esa consulta preparada. |
-| `execute()` | Ejecuta la consulta preparada. | Guarda el registro. | No. |
+| `$fechaNacimientoParaSQL` | Escribe `NULL` cuando no existe una fecha y coloca comillas cuando sí existe. | Prepara la fecha para que MySQL pueda entenderla. | Necesario con la consulta directa actual. |
+| `$conexion->query(...)` | Envía directamente una instrucción SQL a MySQL. | Ejecuta el texto que guarda, consulta, modifica o elimina datos. | No. Es la forma elegida para mantener esta entrega sencilla. |
 | `$conexion->insert_id` | Recupera el identificador autogenerado de la persona. | Obtiene el número interno de la persona recién creada para relacionarla con paciente. | No; es la unión entre ambas tablas. |
-| `bind_param("iss", ...)` | Envía un entero (`i`) y dos textos (`ss`) al `INSERT` de paciente. | Guarda el id de persona, el estado y la patología. | No si se mantiene esa consulta. |
-| `activo = 1` dentro del SQL | Crea al paciente como activo sin pedirle ese dato al usuario. | Todo paciente nuevo comienza activo. | Podría dejarse solo el valor predeterminado de MySQL y quitar `activo` del `INSERT`; esa sería una reducción válida. |
+| Segundo `INSERT` | Guarda el id de persona, el estado y la patología en `paciente`. | Completa la parte médica del registro. | No mientras persona y paciente sean tablas separadas. |
+| `activo` ausente en el `INSERT` | MySQL usa automáticamente `DEFAULT TRUE`. | Todo paciente nuevo comienza activo sin agregar código PHP. | Está bien que no aparezca en PHP. |
 | `fecha_registro` ausente en el `INSERT` | MySQL completa la columna mediante `DEFAULT CURRENT_TIMESTAMP`. | La fecha se pone sola al guardar. | Está bien que no aparezca en PHP. Agregarla sería código innecesario. |
-| `close()` de cada sentencia | Libera los recursos de la consulta preparada. | Cierra cada consulta cuando termina de usarse. | En una página pequeña PHP lo hace al finalizar; se puede borrar, aunque dejarlo es una buena práctica. |
-| `commit()` | Confirma definitivamente la transacción. | Hace efectivos los dos registros. | No mientras exista la transacción. |
 | `header("Location: pacientes.php")` y `exit` | Redirigen después del alta y detienen el script. | Vuelve al listado y evita registrar de nuevo al actualizar el navegador. | El alta funcionaría sin redirección, pero conviene mantenerlos. |
-| `rollback()` | Revierte las consultas ejecutadas dentro de la transacción. | Si algo falla, borra el intento incompleto. | No mientras exista la transacción. |
 | Código de error `1062` | Detecta una restricción `UNIQUE` duplicada. | Permite avisar específicamente que la cédula ya existe. | Opcional; sin él solo habría un mensaje genérico. |
 
-### Qué significan las letras de `bind_param`
+### Por qué ahora no aparece `bind_param`
 
-- `i`: número entero, como `id_persona`.
-- `s`: texto, como nombres, estado o patología.
-- Las letras deben aparecer en el mismo orden y cantidad que los signos `?` de la consulta.
+Para esta entrega se eligieron consultas directas con `query()` porque son más cortas y fáciles de presentar. Por eso ya no hacen falta variables llamadas `$stmt`, signos `?`, `bind_param()` ni letras de tipos. Esta decisión prioriza la sencillez del trabajo académico y no sería la recomendada para un sistema real expuesto a usuarios externos.
 
 ## 3. Listado: `pacientes.php`
 
@@ -86,18 +79,16 @@ Esta guía explica la parte funcional del proyecto. No describe etiquetas HTML n
 
 Las reducciones razonables, desde la más segura hasta la que más funcionalidad quita, son:
 
-1. Quitar los `close()` de las sentencias. Reduce dos líneas y PHP cerrará los recursos al terminar.
-2. Omitir `activo` en el `INSERT` y confiar en `DEFAULT TRUE` de MySQL.
-3. Quitar el caso especial del error `1062` y dejar un único mensaje de error.
-4. Quitar `ORDER BY` si no importa el orden del listado.
-5. Quitar el formulario de búsqueda y todo el bloque JavaScript. El alta y el listado seguirán funcionando, pero ya no se podrá filtrar.
+1. Quitar el caso especial del error `1062` y dejar un único mensaje de error.
+2. Quitar `ORDER BY` si no importa el orden del listado.
+3. Quitar el formulario de búsqueda y todo el bloque JavaScript. El alta y el listado seguirán funcionando, pero ya no se podrá filtrar.
 
-No conviene quitar las consultas preparadas, la validación de PHP, `insert_id`, la transacción, `commit/rollback`, `escapar()` ni la relación entre persona y paciente.
+No conviene quitar la validación de PHP, `insert_id`, `escapar()` ni la relación entre persona y paciente porque cumplen funciones visibles en el proyecto actual.
 
-## 7. Dos archivos SQL
+## 7. Archivos SQL
 
-Tener `pulso_base_de_datos (1).sql` y `pulso_base_de_datos (2).sql` puede causar confusión durante la entrega. Antes de entregar deberían elegir un solo esquema oficial, comprobar que contiene las tablas necesarias para los cinco ABM y eliminar o archivar el otro.
+El esquema principal de esta versión es `pulso_base_de_datos.sql`, que crea `pulso_entrega`. Los archivos numerados son versiones anteriores; mantener los tres puede causar confusión durante la defensa. Para la entrega final conviene dejar uno solo cuando el equipo confirme que contiene las tablas necesarias para los cinco ABM.
 
 ## 8. Explicación corta para la defensa
 
-> El formulario envía los datos por POST. PHP valida los campos, abre una transacción e inserta primero la persona. Recupera su id autogenerado y lo usa para insertar el paciente. Si ambas consultas funcionan hace commit; si alguna falla hace rollback. El listado usa un JOIN para reunir los datos de las dos tablas y escapa cada valor antes de mostrarlo. MySQL genera automáticamente la fecha de registro.
+> El formulario envía los datos por POST. PHP valida los campos e inserta primero la persona con una consulta directa. Después recupera su id autogenerado y lo usa para insertar el paciente. El listado usa un JOIN para reunir los datos de las dos tablas y escapa cada valor antes de mostrarlo. MySQL genera automáticamente la fecha de registro y el estado activo inicial.

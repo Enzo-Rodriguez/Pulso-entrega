@@ -16,7 +16,7 @@ function escapar($valor): string
 }
 
 // Primero se consulta el registro para conocer también el id de la persona relacionada.
-$consulta = $conexion->prepare(
+$resultadoPaciente = $conexion->query(
     "SELECT
         paciente.id_persona,
         paciente.estado,
@@ -31,12 +31,9 @@ $consulta = $conexion->prepare(
         persona.email
      FROM paciente
      INNER JOIN persona ON persona.id_persona = paciente.id_persona
-     WHERE paciente.id_paciente = ?"
+     WHERE paciente.id_paciente = $idPaciente"
 );
-$consulta->bind_param("i", $idPaciente);
-$consulta->execute();
-$paciente = $consulta->get_result()->fetch_assoc();
-$consulta->close();
+$paciente = $resultadoPaciente->fetch_assoc();
 
 if ($paciente === null) {
     http_response_code(404);
@@ -69,61 +66,34 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $mensajeError = "Complete correctamente todos los campos obligatorios.";
     } else {
         try {
-            $conexion->begin_transaction();
+            $fechaNacimientoParaSQL = $fechaNacimiento === ""
+                ? "NULL"
+                : "'$fechaNacimiento'";
+            $emailParaSQL = $email === "" ? "NULL" : "'$email'";
+            $idPersona = $paciente["id_persona"];
 
-            $fechaNacimientoBase = $fechaNacimiento === "" ? null : $fechaNacimiento;
-            $emailBase = $email === "" ? null : $email;
-
-            $actualizarPersona = $conexion->prepare(
+            $conexion->query(
                 "UPDATE persona
-                 SET nombres = ?, apellidos = ?, ci = ?, fecha_nacimiento = ?,
-                     sexo = ?, telefono = ?, direccion = ?, email = ?
-                 WHERE id_persona = ?"
+                 SET nombres = '$nombres', apellidos = '$apellidos', ci = '$ci',
+                     fecha_nacimiento = $fechaNacimientoParaSQL, sexo = '$sexo',
+                     telefono = '$telefono', direccion = '$direccion', email = $emailParaSQL
+                 WHERE id_persona = $idPersona"
             );
-            $actualizarPersona->bind_param(
-                "ssssssssi",
-                $nombres,
-                $apellidos,
-                $ci,
-                $fechaNacimientoBase,
-                $sexo,
-                $telefono,
-                $direccion,
-                $emailBase,
-                $paciente["id_persona"]
-            );
-            $actualizarPersona->execute();
-            $actualizarPersona->close();
 
-            $actualizarPaciente = $conexion->prepare(
-                "UPDATE paciente SET estado = ?, patologia = ? WHERE id_paciente = ?"
+            $conexion->query(
+                "UPDATE paciente
+                 SET estado = '$estado', patologia = '$patologia'
+                 WHERE id_paciente = $idPaciente"
             );
-            $actualizarPaciente->bind_param("ssi", $estado, $patologia, $idPaciente);
-            $actualizarPaciente->execute();
-            $actualizarPaciente->close();
 
-            $conexion->commit();
             header("Location: ficha-paciente.php?id=" . $idPaciente . "&actualizado=ok");
             exit;
         } catch (mysqli_sql_exception $error) {
-            $conexion->rollback();
             $mensajeError = $error->getCode() === 1062
                 ? "Ya existe otra persona registrada con esa cédula."
                 : "No se pudieron guardar los cambios. Intente nuevamente.";
         }
     }
-
-    // Si hubo un error, el formulario conserva lo que el usuario había escrito.
-    $paciente["nombres"] = $nombres;
-    $paciente["apellidos"] = $apellidos;
-    $paciente["ci"] = $ci;
-    $paciente["fecha_nacimiento"] = $fechaNacimiento;
-    $paciente["sexo"] = $sexo;
-    $paciente["telefono"] = $telefono;
-    $paciente["direccion"] = $direccion;
-    $paciente["email"] = $email;
-    $paciente["estado"] = $estado;
-    $paciente["patologia"] = $patologia;
 }
 
 ?>

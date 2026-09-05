@@ -30,59 +30,39 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $mensajeError = "Complete correctamente todos los campos obligatorios.";
     } else {
         try {
-            // La transacción permite guardar persona y paciente como una sola operación.
-            $conexion->begin_transaction();
-
             // MySQL espera NULL, no una cadena vacía, cuando no se informa una fecha.
             if ($fechaNacimiento === "") {
                 $fechaNacimiento = null;
             }
 
-            // La consulta preparada separa el SQL de los datos ingresados por el usuario.
-            $stmtPersona = $conexion->prepare(
+            $fechaNacimientoParaSQL = $fechaNacimiento === null
+                ? "NULL"
+                : "'$fechaNacimiento'";
+
+            // Guarda primero los datos personales.
+            $conexion->query(
                 "INSERT INTO persona
                     (nombres, apellidos, ci, telefono, fecha_nacimiento, sexo, direccion)
-                 VALUES (?, ?, ?, ?, ?, ?, ?)"
+                 VALUES
+                    ('$nombres', '$apellidos', '$ci', '$telefono',
+                     $fechaNacimientoParaSQL, '$sexo', '$direccion')"
             );
-            // Cada "s" indica que el valor correspondiente se envía como texto.
-            $stmtPersona->bind_param(
-                "sssssss",
-                $nombres,
-                $apellidos,
-                $ci,
-                $telefono,
-                $fechaNacimiento,
-                $sexo,
-                $direccion
-            );
-            $stmtPersona->execute();
+
+            // Recupera el id generado para relacionar ambas tablas.
             $idPersona = $conexion->insert_id;
-            $stmtPersona->close();
 
-            // Relaciona el paciente con la persona recién creada mediante su id.
-            // La fecha de registro la completa MySQL automáticamente.
-            $stmtPaciente = $conexion->prepare(
+            // MySQL completa fecha_registro y activo con sus valores predeterminados.
+            $conexion->query(
                 "INSERT INTO paciente
-                    (id_persona, estado, patologia, activo)
-                 VALUES (?, ?, ?, 1)"
+                    (id_persona, estado, patologia)
+                 VALUES
+                    ($idPersona, '$estado', '$patologia')"
             );
-            // "i" representa un entero y cada "s" representa un texto.
-            $stmtPaciente->bind_param(
-                "iss",
-                $idPersona,
-                $estado,
-                $patologia
-            );
-            $stmtPaciente->execute();
-            $stmtPaciente->close();
 
-            // Confirma ambos INSERT y vuelve al listado para mostrar el resultado.
-            $conexion->commit();
+            // Vuelve al listado para mostrar el nuevo paciente.
             header("Location: pacientes.php");
             exit;
         } catch (mysqli_sql_exception $error) {
-            // Si algo falla, rollback deshace también el primer INSERT y evita datos a medias.
-            $conexion->rollback();
             $mensajeError = $error->getCode() === 1062
                 ? "Ya existe una persona registrada con esa cédula."
                 : "No se pudo registrar el paciente. Intente nuevamente.";
