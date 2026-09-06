@@ -27,3 +27,4 @@ $conexion->query(
 $conexion->close();
 header("Location: pacientes.php");
 exit;
+?>
