@@ -446,23 +446,27 @@ button {
   text-transform: uppercase;
 }
 
-.detalle-paciente {
+.detalle-paciente,
+.detalle-ambulancia {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px;
   margin: 22px 0 0;
 }
 
-.detalle-paciente div {
+.detalle-paciente div,
+.detalle-ambulancia div {
   border-bottom: 1px solid var(--borde);
   padding-bottom: 12px;
 }
 
-.detalle-paciente .detalle-ancho {
+.detalle-paciente .detalle-ancho,
+.detalle-ambulancia .detalle-ancho {
   grid-column: 1 / -1;
 }
 
-.detalle-paciente dt {
+.detalle-paciente dt,
+.detalle-ambulancia dt {
   margin-bottom: 6px;
   color: var(--texto-suave);
   font-size: 12px;
@@ -470,7 +474,8 @@ button {
   text-transform: uppercase;
 }
 
-.detalle-paciente dd {
+.detalle-paciente dd,
+.detalle-ambulancia dd {
   margin: 0;
   line-height: 1.5;
 }

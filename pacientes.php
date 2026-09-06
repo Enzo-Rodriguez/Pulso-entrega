@@ -56,7 +56,7 @@ $estados = [
         <a href="panel.html">Panel</a>
         <a class="enlace-activo" href="pacientes.php">Pacientes</a>
         <a href="documentos.html">Documentos</a>
-        <a href="ambulancia.html">Ambulancias</a>
+        <a href="ambulancia.php">Ambulancias</a>
         <a href="index.html">Inicio</a>
       </nav>
     </header>

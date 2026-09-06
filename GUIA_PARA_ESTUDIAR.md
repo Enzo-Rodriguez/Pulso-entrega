@@ -1,6 +1,6 @@
-# Guía breve del código de pacientes
+# Guía breve del código
 
-Esta guía explica la parte funcional del proyecto. No describe etiquetas HTML ni reglas CSS evidentes, porque para la defensa importa más entender cómo viajan los datos entre el formulario, PHP y MySQL.
+Esta guía explica la parte funcional de pacientes y ambulancias. No describe etiquetas HTML ni reglas CSS evidentes, porque para la defensa importa más entender cómo viajan los datos entre los formularios, PHP y MySQL.
 
 ## 1. Conexión: `conexion.php`
 
@@ -92,3 +92,15 @@ El esquema principal de esta versión es `pulso_base_de_datos.sql`, que crea `pu
 ## 8. Explicación corta para la defensa
 
 > El formulario envía los datos por POST. PHP valida los campos e inserta primero la persona con una consulta directa. Después recupera su id autogenerado y lo usa para insertar el paciente. El listado usa un JOIN para reunir los datos de las dos tablas y escapa cada valor antes de mostrarlo. MySQL genera automáticamente la fecha de registro y el estado activo inicial.
+
+## 9. ABM de ambulancias
+
+| Archivo | Qué hace técnicamente | Explicación sencilla |
+|---|---|---|
+| `ambulancia.php` | Ejecuta un `SELECT` con `INNER JOIN` y muestra todas las unidades. | Es el listado principal de ambulancias. |
+| `nueva-ambulancia.php` | Ejecuta un `INSERT` con matrícula, estado, marca, modelo y capacidad. | Registra una ambulancia nueva. |
+| `ficha-ambulancia.php` | Busca una unidad mediante su matrícula. | Muestra todos sus datos y los botones de acción. |
+| `editar-ambulancia.php` | Ejecuta un `UPDATE` sin modificar la clave primaria. | Cambia los datos de la ambulancia, pero conserva su matrícula. |
+| `eliminar_ambulancia.php` | Recibe la matrícula por `POST` y ejecuta los `DELETE`. | Elimina la ambulancia después de pedir confirmación. |
+
+La matrícula funciona como `PRIMARY KEY`, por eso identifica cada ambulancia y queda bloqueada durante la edición. El estado se guarda mediante `id_estado_ambulancia`, que relaciona la unidad con la tabla `estado_ambulancia`. El campo `activa` no aparece en el alta porque MySQL usa `DEFAULT TRUE` automáticamente.
