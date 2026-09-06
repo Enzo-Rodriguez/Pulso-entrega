@@ -1,6 +1,3 @@
--- Base preparada para ejecutar PULSO con XAMPP y MariaDB/MySQL.
--- La base "pulso" existente no se modifica: esta entrega usa "pulso_entrega".
-
 CREATE DATABASE IF NOT EXISTS pulso_entrega
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
@@ -55,14 +52,10 @@ CREATE TABLE IF NOT EXISTS estado_documento (
 
 CREATE TABLE IF NOT EXISTS documento (
     id_documento INT AUTO_INCREMENT,
-    id_funcionario INT NOT NULL,
-    id_estado_documento INT NOT NULL,
     titulo VARCHAR(200) NOT NULL,
     ruta_archivo VARCHAR(255) NOT NULL,
     fecha_carga DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id_documento),
-    FOREIGN KEY (id_funcionario) REFERENCES funcionario(id_funcionario),
-    FOREIGN KEY (id_estado_documento) REFERENCES estado_documento(id_estado_documento)
+    PRIMARY KEY (id_documento)
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS estado_ambulancia (

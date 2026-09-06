@@ -243,6 +243,24 @@ button {
   flex-shrink: 0;
 }
 
+.acciones-tabla {
+  flex-wrap: nowrap;
+}
+
+.boton-accion {
+  min-height: 36px;
+  gap: 7px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.icono-boton {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
 .rejilla {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
