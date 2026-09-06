@@ -15,6 +15,7 @@ $resultadoDocumentos = $conexion->query(
 
 $documentos = $resultadoDocumentos->fetch_all(MYSQLI_ASSOC);
 $cargaExitosa = ($_GET["carga"] ?? "") === "exitosa";
+$eliminacionExitosa = ($_GET["eliminacion"] ?? "") === "exitosa";
 
 function llamar($contenido): string
 {
@@ -63,6 +64,10 @@ function llamar($contenido): string
           <p class="estado estado-publicado" role="status">Documento cargado correctamente.</p>
         <?php endif; ?>
 
+        <?php if ($eliminacionExitosa): ?>
+          <p class="estado estado-publicado" role="status">Documento eliminado correctamente.</p>
+        <?php endif; ?>
+
         <p class="cantidad-resultados">
           <?= count($documentos) ?> <?= count($documentos) === 1 ? "documento" : "documentos" ?>
         </p>
@@ -96,10 +101,12 @@ function llamar($contenido): string
                   <td>
                     <div class="acciones acciones-tabla">
                       <button class="boton boton-accion" type="button">Actualizar</button>
-                      <button class="boton_rojo boton-accion" type="button">
-                        <img class="icono-boton" src="recursos/eliminar.png" alt="">
-                        Eliminar
-                      </button>
+                      <form action="eliminar-documento.php" method="post" onsubmit="return confirm('¿Eliminar este documento?');">
+                        <input type="hidden" name="id" value="<?= llamar($documento["id_documento"]) ?>">
+                        <button class="boton_rojo boton-accion" type="submit" title="Eliminar documento" aria-label="Eliminar documento">
+                          <img class="icono-boton" src="recursos/eliminar.png" alt="">
+                        </button>
+                      </form>
                     </div>
                   </td>
                 </tr>

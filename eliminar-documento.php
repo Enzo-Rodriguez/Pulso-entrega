@@ -14,17 +14,43 @@ if ($idDocumento === false || $idDocumento === null || $idDocumento < 1) {
     die("El identificador del documento no es válido.");
 }
 
-$stmt = $conexion->prepare(
-    "DELETE FROM documento WHERE id_documento = ?"
-);
+try {
+    // Busca la ruta antes de eliminar el registro para poder borrar también el archivo.
+    $buscarDocumento = $conexion->prepare(
+        "SELECT ruta_archivo FROM documento WHERE id_documento = ?"
+    );
+    $buscarDocumento->bind_param("i", $idDocumento);
+    $buscarDocumento->execute();
+    $buscarDocumento->bind_result($rutaArchivo);
+    $documentoExiste = $buscarDocumento->fetch();
+    $buscarDocumento->close();
 
-$stmt->bind_param("i", $idDocumento);
+    if (!$documentoExiste) {
+        http_response_code(404);
+        die("El documento no existe.");
+    }
 
-$stmt->execute();
+    $eliminarDocumento = $conexion->prepare(
+        "DELETE FROM documento WHERE id_documento = ?"
+    );
+    $eliminarDocumento->bind_param("i", $idDocumento);
+    $eliminarDocumento->execute();
+    $eliminarDocumento->close();
 
-$stmt->close();
+    // basename impide que una ruta guardada pueda borrar archivos fuera de esta carpeta.
+    $rutaFisica = __DIR__ . DIRECTORY_SEPARATOR . "documentos_subidos"
+        . DIRECTORY_SEPARATOR . basename($rutaArchivo);
+
+    if (is_file($rutaFisica)) {
+        unlink($rutaFisica);
+    }
+} catch (mysqli_sql_exception $error) {
+    http_response_code(500);
+    die("No se pudo eliminar el documento.");
+}
+
 $conexion->close();
 
-header("Location: documentos.php");
+header("Location: documentos.php?eliminacion=exitosa");
 exit;
 ?>

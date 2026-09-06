@@ -11,7 +11,6 @@ function llamar($contenido): string
 }
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-<<<<<<< HEAD
     $titulo = trim($_POST["titulo"] ?? "");
     $archivo = $_FILES["documento"] ?? null;
 
@@ -67,10 +66,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             }
         }
     }
-=======
-    $titulo = $_POST["titulo"];
-
->>>>>>> 2e1ef9c6272d0f1d21cea303f09223e66699b0a7
 }
 
 ?>
