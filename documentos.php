@@ -14,6 +14,7 @@ $resultadoDocumentos = $conexion->query(
 );
 
 $documentos = $resultadoDocumentos->fetch_all(MYSQLI_ASSOC);
+$cargaExitosa = ($_GET["carga"] ?? "") === "exitosa";
 
 function llamar($contenido): string
 {
@@ -52,9 +53,16 @@ function llamar($contenido): string
           <h1>Documentos</h1>
           <p>Documentos registrados en el sistema PULSO.</p>
         </div>
+        <div class="acciones">
+          <a class="boton" href="cargar-documento.php">Cargar documento</a>
+        </div>
       </section>
 
       <section class="tarjeta">
+        <?php if ($cargaExitosa): ?>
+          <p class="estado estado-publicado" role="status">Documento cargado correctamente.</p>
+        <?php endif; ?>
+
         <p class="cantidad-resultados">
           <?= count($documentos) ?> <?= count($documentos) === 1 ? "documento" : "documentos" ?>
         </p>
@@ -80,7 +88,11 @@ function llamar($contenido): string
                 <tr>
                   <td><strong><?= llamar($documento["titulo"]) ?></strong></td>
                   <td><?= llamar($documento["fecha_carga"]) ?></td>
-                  <td><?= llamar(basename($documento["ruta_archivo"])) ?></td>
+                  <td>
+                    <a href="<?= llamar($documento["ruta_archivo"]) ?>" target="_blank" rel="noopener">
+                      <?= llamar(basename($documento["ruta_archivo"])) ?>
+                    </a>
+                  </td>
                   <td>
                     <div class="acciones acciones-tabla">
                       <button class="boton boton-accion" type="button">Actualizar</button>
