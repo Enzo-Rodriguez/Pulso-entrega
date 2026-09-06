@@ -25,15 +25,101 @@
     <main class="pagina">
       <section class="encabezado-pagina">
         <div>
-          <p class="subtitulo">Traslados</p>
-          <h1>Detalle de traslado</h1>
-          <p>Consulta de la información de un traslado.</p>
+          <p class="subtitulo">Gestión de traslados</p>
+          <h1>Nuevo traslado</h1>
+          <p>Complete los datos disponibles para programar el traslado.</p>
         </div>
       </section>
 
       <section class="tarjeta">
-        <h2>Módulo pendiente</h2>
-        <p>Esta vista se completará cuando el ABM de traslados esté conectado a la base de datos.</p>
+        <form class="formulario formulario-dos-columnas" action="traslado.html" method="post">
+          <label for="paciente">
+            Paciente
+            <select id="paciente" name="id_paciente">
+              <option value="">Sin paciente asociado</option>
+            </select>
+          </label>
+
+          <label for="ambulancia">
+            Ambulancia
+            <select id="ambulancia" name="matricula" required>
+              <option value="" disabled selected>Seleccionar</option>
+              <option value="AMB-001">AMB-001</option>
+            </select>
+          </label>
+
+          <label for="creador">
+            Funcionario que registra
+            <select id="creador" name="id_creador" required>
+              <option value="" disabled selected>Seleccionar</option>
+            </select>
+          </label>
+
+          <label for="conductor">
+            Conductor
+            <select id="conductor" name="id_conductor" required>
+              <option value="" disabled selected>Seleccionar</option>
+            </select>
+          </label>
+
+          <label for="acompanante">
+            Acompañante
+            <select id="acompanante" name="id_acompanante">
+              <option value="">Sin acompañante</option>
+            </select>
+          </label>
+
+          <label for="tipo-carga">
+            Tipo de carga
+            <select id="tipo-carga" name="id_tipo_carga" required>
+              <option value="" disabled selected>Seleccionar</option>
+              <option value="1">Paciente</option>
+              <option value="2">Insumo médico</option>
+              <option value="3">Equipamiento</option>
+            </select>
+          </label>
+
+          <label for="prioridad">
+            Prioridad
+            <select id="prioridad" name="id_tipo_prioridad" required>
+              <option value="" disabled selected>Seleccionar</option>
+              <option value="1">Baja</option>
+              <option value="2">Media</option>
+              <option value="3">Alta</option>
+              <option value="4">Urgente</option>
+            </select>
+          </label>
+
+          <label for="salida-prevista">
+            Salida prevista
+            <input id="salida-prevista" type="datetime-local" name="salida_prevista" required>
+          </label>
+
+          <label class="campo-completo" for="origen">
+            Origen
+            <input id="origen" type="text" name="origen" required>
+          </label>
+
+          <label class="campo-completo" for="destino">
+            Destino
+            <input id="destino" type="text" name="destino" required>
+          </label>
+
+          <label class="campo-completo" for="descripcion-carga">
+            Descripción de la carga
+            <textarea id="descripcion-carga" name="descripcion_carga" maxlength="255"></textarea>
+          </label>
+
+          <label for="estado-inicial">
+            Estado inicial
+            <input id="estado-inicial" type="text" value="Programado" readonly>
+          </label>
+
+          <div class="acciones campo-completo">
+            <a class="boton boton-secundario" href="ambulancia.html">Cancelar</a>
+            <button class="boton" type="submit">Registrar traslado</button>
+          </div>
+        </form>
       </section>
     </main>
   </body>
