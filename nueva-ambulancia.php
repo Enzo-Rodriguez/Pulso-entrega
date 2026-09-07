@@ -62,8 +62,10 @@ $estados = $resultadoEstados->fetch_all(MYSQLI_ASSOC);
       <nav class="navegacion" aria-label="Páginas principales">
         <a href="panel.html">Panel</a>
         <a href="pacientes.php">Pacientes</a>
+        <a href="funcionario.php">Funcionarios</a>
         <a href="documentos.php">Documentos</a>
         <a class="enlace-activo" href="ambulancia.php">Ambulancias</a>
+        <a href="equipamientos.php">Equipamientos</a>
         <a href="index.html">Inicio</a>
       </nav>
     </header>

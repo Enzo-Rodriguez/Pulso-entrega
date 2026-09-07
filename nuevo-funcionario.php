@@ -12,18 +12,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $fechaNacimiento = trim($_POST["fecha_nacimiento"] ?? "");
     $sexo = trim($_POST["sexo"] ?? "");
     $direccion = trim($_POST["direccion"] ?? "");
-    $idtipofuncionario = trim($_POST["id_tipo_funcionario"] ?? "");
-    $idfuncionario = trim($_POST["id_funcionario"] ?? "");
     $email = trim($_POST["email"] ?? "");
-
-    // Listas cerradas para impedir valores que no existen en los select del formulario.
+    $activo = trim($_POST["activo"] ?? "");
+    $nombre = trim($_POST["nombre"] ?? "");
+    
+ // Listas cerradas para impedir valores que no existen en los select del formulario.
     $sexosValidos = ["masculino", "femenino", "otro"];
 
 
     // PHP vuelve a validar lo obligatorio aunque el navegador ya use required.
     if (
-        $nombres === "" || $apellidos === "" || $ci === "" ||
-        $idtipofuncionario === "" || $idfuncionario === "" ||
+        $nombres === "" || $apellidos === "" || $ci === "" ||       
+        ($activo !== "" || !in_array($activo, ["0", "1"], true)) ||
         ($sexo !== "" && !in_array($sexo, $sexosValidos, true))
     ) {
         $mensajeError = "Complete correctamente todos los campos obligatorios.";
@@ -51,12 +51,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $idPersona = $conexion->insert_id;
 
             // MySQL completa fecha_registro y activo con sus valores predeterminados.
+           $conexion->query(
+                "INSERT INTO tipo_funcionario
+                    (nombre)
+                 VALUES
+                    ('$nombre')"
+            );
             $conexion->query(
                 "INSERT INTO funcionario
-                    (id_persona, id_funcionario, id_tipo_funcionario)
+                    (id_persona, id_tipo_funcionario, activo)
                  VALUES
-                    ($idPersona, '$idfuncionario', '$idtipofuncionario')"
+                    ($idPersona, '$idtipofuncionario', '$activo')"
             );
+            
 
             // Vuelve al listado para mostrar el nuevo funcionario.
             header("Location: funcionario.php");
@@ -68,6 +75,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
     }
 }
+
+
 
 ?>
 <!doctype html>
@@ -142,6 +151,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
               <option value="masculino">Masculino</option>
               <option value="femenino">Femenino</option>
               <option value="otro">Otro</option>
+            </select>
+          </label>
+          <label for="nombre">
+            Tipo de funcionario
+            <select id="nombre" name="nombre">
+              <option value="">Seleccione un tipo</option>
+              <option value="Médico">Médico</option>
+              <option value="Administrativo">Administrativo</option>
+              <option value="Conductor">Conductor</option>
+              <option value="Enfermeria">Enfermería</option>
+            </select>
+          </label>
+           <label for="activo">
+            Activo
+            <select id="activo" name="activo">
+              <option value="1">Sí</option>
+              <option value="0">No</option>
             </select>
           </label>
       
