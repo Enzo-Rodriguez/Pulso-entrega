@@ -115,6 +115,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       <nav class="navegacion" aria-label="Páginas principales">
         <a href="panel.html">Panel</a>
         <a class="enlace-activo" href="pacientes.php">Pacientes</a>
+        <a href="funcionario.php">Funcionarios</a>
         <a href="documentos.php">Documentos</a>
         <a href="ambulancia.php">Ambulancias</a>
         <a href="index.html">Inicio</a>
