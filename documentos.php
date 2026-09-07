@@ -45,6 +45,7 @@ function llamar($contenido): string
         <a href="funcionario.php">Funcionarios</a>
         <a class="enlace-activo" href="documentos.php">Documentos</a>
         <a href="ambulancia.php">Ambulancias</a>
+        <a href="equipamientos.php">Equipamientos</a>
         <a href="index.html">Inicio</a>
       </nav>
     </header>
