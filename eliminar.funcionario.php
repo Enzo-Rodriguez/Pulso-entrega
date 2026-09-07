@@ -25,5 +25,5 @@ $conexion->query(
 );
 
 $conexion->close();
-header("Location: funcionarios.php");
+header("Location: nuevo-funcionario.php");
 exit;

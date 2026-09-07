@@ -57,7 +57,7 @@ function escapar($valor)
           <p>Personal registrado en el sistema PULSO.</p>
         </div>
         <div class="acciones">
-          <a class="boton" href="editar-funcionario.php">Nuevo funcionario</a>
+          <a class="boton" href="nuevo-funcionario.php">Nuevo funcionario</a>
         </div>
       </section>
 
@@ -91,7 +91,7 @@ function escapar($valor)
             <tbody>
               <?php if (count($funcionarios) === 0): ?>
                 <tr>
-                  <td colspan="5">hay 10 funcionarios.</td>
+                  <td colspan="5">No hay funcionarios registrados.</td>
                 </tr>
               <?php endif; ?>
 
@@ -113,6 +113,9 @@ function escapar($valor)
                   <td><span class="estado <?= $estadoClase ?>"><?= $estadoTexto ?></span></td>
                   <td>
                     <a class="boton boton-secundario" href="modificarfuncionario.php?id=<?= $funcionario['id_funcionario'] ?>">Editar</a>
+                    <button class="boton_rojo boton-accion" type="submit" title="Eliminar documento" aria-label="Eliminar documento">
+                          <img class="icono-boton" src="recursos/eliminar.png" alt="">
+                        </button>
                   </td>
                 </tr>
               <?php endforeach; ?>
