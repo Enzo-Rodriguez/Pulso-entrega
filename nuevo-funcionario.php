@@ -1,11 +1,9 @@
 <?php
-
+require_once "conexion.php";
 $mensajeError = "";
 
 // Este bloque solo se ejecuta cuando el usuario envía el formulario.
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    require_once "conexion.php";
-
     // Lee los campos enviados; trim quita espacios al principio y al final.
     $nombres = trim($_POST["nombres"] ?? "");
     $apellidos = trim($_POST["apellidos"] ?? "");
@@ -13,19 +11,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $telefono = trim($_POST["telefono"] ?? "");
     $fechaNacimiento = trim($_POST["fecha_nacimiento"] ?? "");
     $sexo = trim($_POST["sexo"] ?? "");
-    $estado = trim($_POST["estado"] ?? "");
     $direccion = trim($_POST["direccion"] ?? "");
-    $patologia = trim($_POST["patologia"] ?? "");
+    $idtipofuncionario = trim($_POST["id_tipo_funcionario"] ?? "");
+    $idfuncionario = trim($_POST["id_funcionario"] ?? "");
     $email = trim($_POST["email"] ?? "");
 
     // Listas cerradas para impedir valores que no existen en los select del formulario.
     $sexosValidos = ["masculino", "femenino", "otro"];
-    $estadosValidos = ["estable", "en_revision", "critico"];
+
 
     // PHP vuelve a validar lo obligatorio aunque el navegador ya use required.
     if (
         $nombres === "" || $apellidos === "" || $ci === "" ||
-        !in_array($estado, $estadosValidos, true) ||
+        $idtipofuncionario === "" || $idfuncionario === "" ||
         ($sexo !== "" && !in_array($sexo, $sexosValidos, true))
     ) {
         $mensajeError = "Complete correctamente todos los campos obligatorios.";
@@ -61,7 +59,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             );
 
             // Vuelve al listado para mostrar el nuevo funcionario.
-            header("Location: funcionarios.php");
+            header("Location: funcionario.php");
             exit;
         } catch (mysqli_sql_exception $error) {
             $mensajeError = $error->getCode() === 1062
@@ -89,7 +87,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       </a>
       <nav class="navegacion" aria-label="Páginas principales">
         <a href="panel.html">Panel</a>
-        <a class="enlace-activo" href="funcionarios.php">Funcionarios</a>
+        <a class="enlace-activo" href="funcionario.php">Funcionarios</a>
         <a href="documentos.php">Documentos</a>
         <a href="ambulancia.php">Ambulancias</a>
         <a href="index.html">Inicio</a>
@@ -111,7 +109,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <?php endif; ?>
 
         <!-- required ayuda al usuario; la validación definitiva igualmente se realiza en PHP. -->
-        <form class="formulario formulario-dos-columnas" action="nuevo-paciente.php" method="post">
+        <form class="formulario formulario-dos-columnas" action="funcionario.php" method="post">
           <label for="nombres">
             Nombre/s
             <input id="nombres" type="text" name="nombres" required>
@@ -159,8 +157,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
          
 
           <div class="acciones campo-completo">
-            <a class="boton boton-secundario" href="funcionarios.php">Cancelar</a>
-            <button class="boton" type="submit">Registrar funcionario</button>
+            <a class="boton boton-secundario" href="funcionario.php">Cancelar</a>
+            <button class="boton" type="submit" href="funcionario.php">Registrar funcionario</button>
           </div>
         </form>
       </section>
