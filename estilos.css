@@ -254,6 +254,10 @@ button {
   font-size: 13px;
 }
 
+.tabla .boton-accion {
+  color: var(--blanco);
+}
+
 .icono-boton {
   width: 18px;
   height: 18px;

@@ -2,7 +2,7 @@
 
 require_once "conexion.php";
 
-// Une paciente con persona para obtener en una sola consulta todos los datos del listado.
+
 $resultado = $conexion->query(
     "SELECT
         paciente.id_paciente,
@@ -19,16 +19,14 @@ $resultado = $conexion->query(
      ORDER BY paciente.id_paciente DESC"
 );
 
-// Convierte el resultado de MySQL en un arreglo que PHP puede recorrer.
 $pacientes = $resultado->fetch_all(MYSQLI_ASSOC);
 
-// Protege el HTML si algún dato guardado contiene símbolos o código.
+
 function escapar($valor)
 {
     return htmlspecialchars($valor ?? "", ENT_QUOTES, "UTF-8");
 }
 
-// Relaciona cada estado de la base con el texto y el color que verá el usuario.
 $estados = [
     "estable" => ["Estable", "estado-estable"],
     "en_revision" => ["En observación", "estado-observacion"],

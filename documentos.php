@@ -14,6 +14,9 @@ $resultadoDocumentos = $conexion->query(
 );
 
 $documentos = $resultadoDocumentos->fetch_all(MYSQLI_ASSOC);
+$cargaExitosa = ($_GET["carga"] ?? "") === "exitosa";
+$eliminacionExitosa = ($_GET["eliminacion"] ?? "") === "exitosa";
+$actualizacionExitosa = ($_GET["actualizacion"] ?? "") === "exitosa";
 
 function llamar($contenido): string
 {
@@ -53,9 +56,24 @@ function llamar($contenido): string
           <h1>Documentos</h1>
           <p>Documentos registrados en el sistema PULSO.</p>
         </div>
+        <div class="acciones">
+          <a class="boton" href="cargar-documento.php">Cargar documento</a>
+        </div>
       </section>
 
       <section class="tarjeta">
+        <?php if ($cargaExitosa): ?>
+          <p class="estado estado-publicado" role="status">Documento cargado correctamente.</p>
+        <?php endif; ?>
+
+        <?php if ($eliminacionExitosa): ?>
+          <p class="estado estado-publicado" role="status">Documento eliminado correctamente.</p>
+        <?php endif; ?>
+
+        <?php if ($actualizacionExitosa): ?>
+          <p class="estado estado-publicado" role="status">Documento actualizado correctamente.</p>
+        <?php endif; ?>
+
         <p class="cantidad-resultados">
           <?= count($documentos) ?> <?= count($documentos) === 1 ? "documento" : "documentos" ?>
         </p>
@@ -81,14 +99,22 @@ function llamar($contenido): string
                 <tr>
                   <td><strong><?= llamar($documento["titulo"]) ?></strong></td>
                   <td><?= llamar($documento["fecha_carga"]) ?></td>
-                  <td><?= llamar(basename($documento["ruta_archivo"])) ?></td>
+                  <td>
+                    <a href="<?= llamar($documento["ruta_archivo"]) ?>" target="_blank" rel="noopener">
+                      <?= llamar(basename($documento["ruta_archivo"])) ?>
+                    </a>
+                  </td>
                   <td>
                     <div class="acciones acciones-tabla">
-                      <button class="boton boton-accion" type="button">Actualizar</button>
-                      <button class="boton_rojo boton-accion" type="button">
-                        <img class="icono-boton" src="recursos/eliminar.png" alt="">
-                        Eliminar
-                      </button>
+                      <a class="boton boton-accion" href="editar-documento.php?id=<?= llamar($documento["id_documento"]) ?>">
+                        Actualizar
+                      </a>
+                      <form action="eliminar-documento.php" method="post" onsubmit="return confirm('¿Eliminar este documento?');">
+                        <input type="hidden" name="id" value="<?= llamar($documento["id_documento"]) ?>">
+                        <button class="boton_rojo boton-accion" type="submit" title="Eliminar documento" aria-label="Eliminar documento">
+                          <img class="icono-boton" src="recursos/eliminar.png" alt="">
+                        </button>
+                      </form>
                     </div>
                   </td>
                 </tr>
