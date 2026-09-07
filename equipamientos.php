@@ -91,6 +91,7 @@ function llamar($valor): string
                    <?= llamar($claseEstado) ?>"><?= llamar($estadoVisible) ?></span></td>
                 </tr>
               <?php endforeach; ?>
+              
             </tbody>
           </table>
         </div>
@@ -98,3 +99,6 @@ function llamar($valor): string
     </main>
   </body>
 </html>
+
+
+
