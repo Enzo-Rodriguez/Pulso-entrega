@@ -15,28 +15,33 @@ if ($equipamiento === false || $equipamiento === null || $equipamiento < 1) {
 }
 
 try {
-    // Busca la ruta antes de eliminar el registro para poder borrar también el archivo.
-    $buscarEquipamiento = $conexion->prepare(
-        "SELECT equipamientos FROM equipamiento WHERE id_equipamiento = ?"
-    );
-    $buscarEquipamiento->bind_param("i", $idEquipamiento);
-    $buscarEquipamiento->execute();
-    $buscarEquipamiento->bind_result($rutaArchivo);
-    $equipamientoExiste = $buscarEquipamiento->fetch();
-    $buscarEquipamiento->close();
 
-    if (!$equipamientoExiste) {
+    $buscarEquipamiento = $conexion->prepare(
+        "SELECT id_equipamiento FROM equipamiento WHERE id_equipamiento = ?"
+    );
+
+    $buscarEquipamiento->bind_param("i", $equipamiento);
+    $buscarEquipamiento->execute();
+    $buscarEquipamiento->store_result();
+
+    if ($buscarEquipamiento->num_rows === 0) {
         http_response_code(404);
         die("El equipamiento no existe.");
     }
 
+    $buscarEquipamiento->close();
+
     $eliminarEquipamiento = $conexion->prepare(
         "DELETE FROM equipamiento WHERE id_equipamiento = ?"
     );
-    $eliminarEquipamiento->bind_param("i", $idEquipamiento);
+
+    $eliminarEquipamiento->bind_param("i", $equipamiento);
     $eliminarEquipamiento->execute();
     $eliminarEquipamiento->close();
 
+} catch (Exception $e) {
+    http_response_code(500);
+    die("Error al eliminar el equipamiento: " . $e->getMessage());
 }
 
 $conexion->close();
