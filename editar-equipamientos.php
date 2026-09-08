@@ -26,7 +26,6 @@ $mensajeError = "";
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $nombre = trim($_POST["nombre"] ?? "");
     $descripcion = trim($_POST["descripcion"] ?? "");
-    $estado = trim($_POST["estado"] ?? "");
 
     if (
         $nombre === "" || $descripcion === "" || $estado === ""
@@ -36,7 +35,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         try {
             $conexion->query(
                 "UPDATE equipamiento
-                 SET nombre = '$nombre', descripcion = '$descripcion', id_estado_equipamiento = '$estado'
+                 SET nombre = '$nombre', descripcion = '$descripcion', id_equipamiento = '$estado'
                  WHERE id_equipamiento = '$equipamientos'"
             );
 
@@ -49,9 +48,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 }
 
 $resultadoEstados = $conexion->query(
-    "SELECT id_estado_equipamiento, nombre
-     FROM estado_equipamiento
-     ORDER BY id_estado_equipamiento"
+    "SELECT id_equipamiento, nombre
+     FROM id_equipamiento
+     ORDER BY id_equipamiento"
 );
 $estados = $resultadoEstados->fetch_all(MYSQLI_ASSOC);
 
@@ -109,11 +108,11 @@ function escapar($valor): string
 
           <label for="estado">
             Estado
-            <select id="estado" name="id_estado_equipamiento" required>
+            <select id="estado" name="id_equipamiento" required>
               <?php foreach ($estados as $estado): ?>
                 <option
-                  value="<?= $estado["id_estado_equipamiento"] ?>"
-                  <?= (int) $equipamiento["id_estado_equipamiento"] === (int) $estado["id_estado_equipamiento"] ? "selected" : "" ?>
+                  value="<?= $estado["id_equipamiento"] ?>"
+                  <?= (int) $equipamiento["id_estado_equipamiento"] === (int) $estado["id_equipamiento"] ? "selected" : "" ?>
                 ><?= escapar($estado["nombre"]) ?></option>
               <?php endforeach; ?>
             </select>
@@ -129,10 +128,6 @@ function escapar($valor): string
             <input id="descripcion" type="text" name="descripcion" value="<?= escapar($equipamiento["descripcion"]) ?>" maxlength="50" required>
           </label>
 
-          <label for="estado">
-            Estado
-            <input id="estado" type="number" name="estado" value="<?= escapar($equipamiento["estado"]) ?>" min="1" required>
-          </label>
 
           <div class="acciones campo-completo">
             <a class="boton boton-secundario" href="ficha-equipamiento.php?id_equipamiento=<?= urlencode($equipamiento["id_equipamiento"]) ?>">Cancelar</a>
