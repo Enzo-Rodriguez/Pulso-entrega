@@ -16,7 +16,7 @@ $resultado = $conexion->query(
      INNER JOIN persona ON persona.id_persona = funcionario.id_persona
      ORDER BY funcionario.id_funcionario DESC"
 );
-$funcionarios = $resultado ? $resultado->fetch_all(MYSQLI_ASSOC) : [];
+$funcionarios = $resultado->fetch_all(MYSQLI_ASSOC) : [];
 
 function escapar($valor)
 {

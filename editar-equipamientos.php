@@ -103,7 +103,7 @@ function escapar($valor): string
 
         <form class="formulario formulario-dos-columnas" action="editar-equipamientos.php?id_equipamiento=<?= urlencode($equipamiento["id_equipamiento"]) ?>" method="post">
           <label for="equipamientos">
-            Matrícula
+            Nombre
             <input id="equipamientos" type="text" value="<?= escapar($equipamiento["id_equipamiento"]) ?>" readonly>
           </label>
 
@@ -120,17 +120,17 @@ function escapar($valor): string
           </label>
 
           <label for="nombre">
-            Marca
+            Nombre
             <input id="nombre" type="text" name="nombre" value="<?= escapar($equipamiento["nombre"]) ?>" maxlength="50" required>
           </label>
 
           <label for="descripcion">
-            Modelo
+            Descripcion
             <input id="descripcion" type="text" name="descripcion" value="<?= escapar($equipamiento["descripcion"]) ?>" maxlength="50" required>
           </label>
 
           <label for="estado">
-            Capacidad
+            Estado
             <input id="estado" type="number" name="estado" value="<?= escapar($equipamiento["estado"]) ?>" min="1" required>
           </label>
 

@@ -7,23 +7,40 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     die("Método no permitido.");
 }
 
-$equipamiento = trim($_POST["equipamiento"] ?? "");
+$equipamiento = filter_input(INPUT_POST, "id", FILTER_VALIDATE_INT);
 
-if ($equipamiento === "") {
+if ($equipamiento === false || $equipamiento === null || $equipamiento < 1) {
     http_response_code(400);
-    die("El equipamiento no es válido.");
+    die("El identificador del equipamiento no es válido.");
 }
 
 try {
-    $conexion->query(
-        "DELETE FROM equipamiento WHERE id_equipamiento = '$equipamiento'"
+    // Busca la ruta antes de eliminar el registro para poder borrar también el archivo.
+    $buscarEquipamiento = $conexion->prepare(
+        "SELECT equipamientos FROM equipamiento WHERE id_equipamiento = ?"
     );
-    $conexion->query(
-        "DELETE FROM equipamientos WHERE id_equipamiento = '$equipamiento'"
-    );
+    $buscarEquipamiento->bind_param("i", $idEquipamiento);
+    $buscarEquipamiento->execute();
+    $buscarEquipamiento->bind_result($rutaArchivo);
+    $equipamientoExiste = $buscarEquipamiento->fetch();
+    $buscarEquipamiento->close();
 
-    header("Location: equipamientos.php");
-    exit;
-} catch (mysqli_sql_exception $error) {
-    die("No se puede eliminar el equipamiento porque está siendo utilizado.");
+    if (!$equipamientoExiste) {
+        http_response_code(404);
+        die("El equipamiento no existe.");
+    }
+
+    $eliminarEquipamiento = $conexion->prepare(
+        "DELETE FROM equipamiento WHERE id_equipamiento = ?"
+    );
+    $eliminarEquipamiento->bind_param("i", $idEquipamiento);
+    $eliminarEquipamiento->execute();
+    $eliminarEquipamiento->close();
+
 }
+
+$conexion->close();
+
+header("Location: equipamientos.php?eliminacion=exitosa");
+exit;
+?>

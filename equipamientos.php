@@ -90,8 +90,20 @@ function llamar($valor): string
                   <td><span class="estado
                    <?= llamar($claseEstado) ?>"><?= llamar($estadoVisible) ?></span></td>
                 </tr>
-              <?php endforeach; ?>
-              
+               <td>
+                    <div class="acciones acciones-tabla">
+                      <a class="boton boton-accion" href="editar-equipamiento.php?id=<?= llamar($equipamiento["id_equipamiento"]) ?>">
+                        Actualizar
+                      </a>
+                      <form action="eliminar-equipamiento.php" method="post" onsubmit="return confirm('¿Eliminar este equipamiento?');">
+                        <input type="hidden" name="id" value="<?= llamar($equipamiento["id_equipamiento"]) ?>">
+                        <button class="boton_rojo boton-accion" type="submit" title="Eliminar equipamiento" aria-label="Eliminar equipamiento">
+                          <img class="icono-boton" src="recursos/eliminar.png" alt="">
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                  <?php endforeach; ?>
             </tbody>
           </table>
         </div>

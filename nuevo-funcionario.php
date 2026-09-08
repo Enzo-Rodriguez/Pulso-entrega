@@ -1,11 +1,9 @@
 <?php
-
+require_once "conexion.php";
 $mensajeError = "";
 
 // Este bloque solo se ejecuta cuando el usuario envía el formulario.
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    require_once "conexion.php";
-
     // Lee los campos enviados; trim quita espacios al principio y al final.
     $nombres = trim($_POST["nombres"] ?? "");
     $apellidos = trim($_POST["apellidos"] ?? "");
@@ -13,19 +11,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $telefono = trim($_POST["telefono"] ?? "");
     $fechaNacimiento = trim($_POST["fecha_nacimiento"] ?? "");
     $sexo = trim($_POST["sexo"] ?? "");
-    $estado = trim($_POST["estado"] ?? "");
     $direccion = trim($_POST["direccion"] ?? "");
-    $patologia = trim($_POST["patologia"] ?? "");
     $email = trim($_POST["email"] ?? "");
-
-    // Listas cerradas para impedir valores que no existen en los select del formulario.
+    $activo = trim($_POST["activo"] ?? "");
+    $nombre = trim($_POST["nombre"] ?? "");
+    
+ // Listas cerradas para impedir valores que no existen en los select del formulario.
     $sexosValidos = ["masculino", "femenino", "otro"];
-    $estadosValidos = ["estable", "en_revision", "critico"];
+
 
     // PHP vuelve a validar lo obligatorio aunque el navegador ya use required.
     if (
-        $nombres === "" || $apellidos === "" || $ci === "" ||
-        !in_array($estado, $estadosValidos, true) ||
+        $nombres === "" || $apellidos === "" || $ci === "" ||       
+        ($activo !== "" || !in_array($activo, ["0", "1"], true)) ||
         ($sexo !== "" && !in_array($sexo, $sexosValidos, true))
     ) {
         $mensajeError = "Complete correctamente todos los campos obligatorios.";
@@ -53,15 +51,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $idPersona = $conexion->insert_id;
 
             // MySQL completa fecha_registro y activo con sus valores predeterminados.
+           $conexion->query(
+                "INSERT INTO tipo_funcionario
+                    (nombre)
+                 VALUES
+                    ('$nombre')"
+            );
             $conexion->query(
                 "INSERT INTO funcionario
-                    (id_persona, id_funcionario, id_tipo_funcionario)
+                    (id_persona, id_tipo_funcionario, activo)
                  VALUES
-                    ($idPersona, '$idfuncionario', '$idtipofuncionario')"
+                    ($idPersona, '$idtipofuncionario', '$activo')"
             );
+            
 
             // Vuelve al listado para mostrar el nuevo funcionario.
-            header("Location: funcionarios.php");
+            header("Location: funcionario.php");
             exit;
         } catch (mysqli_sql_exception $error) {
             $mensajeError = $error->getCode() === 1062
@@ -70,6 +75,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
     }
 }
+
+
 
 ?>
 <!doctype html>
@@ -89,11 +96,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       </a>
       <nav class="navegacion" aria-label="Páginas principales">
         <a href="panel.html">Panel</a>
-        <a href="pacientes.php">Pacientes</a>
         <a class="enlace-activo" href="funcionario.php">Funcionarios</a>
         <a href="documentos.php">Documentos</a>
         <a href="ambulancia.php">Ambulancias</a>
-        <a href="equipamientos.php">Equipamientos</a>
         <a href="index.html">Inicio</a>
       </nav>
     </header>
@@ -113,7 +118,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <?php endif; ?>
 
         <!-- required ayuda al usuario; la validación definitiva igualmente se realiza en PHP. -->
-        <form class="formulario formulario-dos-columnas" action="nuevo-paciente.php" method="post">
+        <form class="formulario formulario-dos-columnas" action="funcionario.php" method="post">
           <label for="nombres">
             Nombre/s
             <input id="nombres" type="text" name="nombres" required>
@@ -148,6 +153,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
               <option value="otro">Otro</option>
             </select>
           </label>
+          <label for="nombre">
+            Tipo de funcionario
+            <select id="nombre" name="nombre">
+              <option value="">Seleccione un tipo</option>
+              <option value="Médico">Médico</option>
+              <option value="Administrativo">Administrativo</option>
+              <option value="Conductor">Conductor</option>
+              <option value="Enfermeria">Enfermería</option>
+            </select>
+          </label>
+           <label for="activo">
+            Activo
+            <select id="activo" name="activo">
+              <option value="1">Sí</option>
+              <option value="0">No</option>
+            </select>
+          </label>
       
           <label class="campo-completo" for="direccion">
             Dirección
@@ -161,8 +183,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
          
 
           <div class="acciones campo-completo">
-            <a class="boton boton-secundario" href="funcionarios.php">Cancelar</a>
-            <button class="boton" type="submit">Registrar funcionario</button>
+            <a class="boton boton-secundario" href="funcionario.php">Cancelar</a>
+            <button class="boton" type="submit" href="funcionario.php">Registrar funcionario</button>
           </div>
         </form>
       </section>

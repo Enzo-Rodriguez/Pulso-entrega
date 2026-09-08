@@ -85,9 +85,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <input id="descripcion" type="text" name="descripcion" maxlength="255" required>
           </label>
 
-          <label for="activo">
+          <label for="estado">
             Estado
-            <select id="activo" name="activo" required>
+            <select id="estado" name="estado" required>
               <option value="" disabled selected>Seleccionar</option>
               <option value="1">Activo</option>
               <option value="0">Inactivo</option>
