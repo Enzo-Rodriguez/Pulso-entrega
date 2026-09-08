@@ -16,7 +16,7 @@ $resultado = $conexion->query(
      INNER JOIN persona ON persona.id_persona = funcionario.id_persona
      ORDER BY funcionario.id_funcionario DESC"
 );
-$funcionarios = $resultado->fetch_all();
+$funcionarios = $resultado->fetch_all(MYSQLI_ASSOC);
 
 function escapar($valor)
 {
@@ -114,7 +114,7 @@ function escapar($valor)
                   <td><span class="estado <?= $estadoClase ?>"><?= $estadoTexto ?></span></td>
                   <td>
                     <a class="boton boton-secundario" href="modificarfuncionario.php?id=<?= $funcionario['id_funcionario'] ?>">Editar</a>
-                    <button class="boton_rojo boton-accion" type="submit" title="Eliminar documento" aria-label="Eliminar documento">
+                    <button class="boton_rojo boton-accion" type="submit" title="Eliminar funcionario" aria-label="Eliminar funcionario" href="eliminar-funcionario.php" formmethod="post" formaction="eliminar-funcionario.php" name="id" value="<?= $funcionario['id_funcionario'] ?>" onclick="return confirm('¿Está seguro de que desea eliminar este funcionario?')">
                           <img class="icono-boton" src="recursos/eliminar.png" alt="">
                         </button>
                   </td>
