@@ -6,13 +6,13 @@ $resultado = $conexion->query(
     "SELECT
         equipamiento.id_equipamiento,
         equipamiento.nombre,
-        equipamiento.descripcion,
-        equipamiento.activo
+        equipamiento.descripcion
      FROM equipamiento
      ORDER BY equipamiento.nombre"
 );
 
 $equipamientos = $resultado->fetch_all(MYSQLI_ASSOC);
+$altaExitosa = ($_GET["alta"] ?? "") === "exitosa";
 
 function llamar($valor): string
 {
@@ -59,6 +59,10 @@ function llamar($valor): string
       </section>
 
       <section class="tarjeta">
+        <?php if ($altaExitosa): ?>
+          <p class="estado estado-publicado" role="status">Equipamiento registrado correctamente.</p>
+        <?php endif; ?>
+
         <p class="cantidad-resultados">
           <?= count($equipamientos) ?> <?= count($equipamientos) === 1 ? "resultado" : "resultados" ?>
         </p>
@@ -69,7 +73,7 @@ function llamar($valor): string
               <tr>
                 <th>Nombre</th>
                 <th>Descripción</th>
-                <th>Estado</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -80,22 +84,15 @@ function llamar($valor): string
               <?php endif; ?>
 
               <?php foreach ($equipamientos as $equipamiento): ?>
-                <?php
-                  $estadoVisible = (int) $equipamiento["activo"] === 1 ? "Disponible" : "Inactivo";
-                  $claseEstado = (int) $equipamiento["activo"] === 1 ? "estado-disponible" : "estado-inactivo";
-                ?>
                 <tr>
                   <td><strong><?= llamar($equipamiento["nombre"]) ?></strong></td>
                   <td><?= llamar($equipamiento["descripcion"]) ?></td>
-                  <td><span class="estado
-                   <?= llamar($claseEstado) ?>"><?= llamar($estadoVisible) ?></span></td>
-                </tr>
-               <td>
+                  <td>
                     <div class="acciones acciones-tabla">
-                      <a class="boton boton-accion" href="editar-equipamiento.php?id=<?= llamar($equipamiento["id_equipamiento"]) ?>">
+                      <a class="boton boton-accion" href="editar-equipamientos.php?equipamiento=<?= llamar($equipamiento["id_equipamiento"]) ?>">
                         Actualizar
                       </a>
-                      <form action="eliminar-equipamiento.php" method="post" onsubmit="return confirm('¿Eliminar este equipamiento?');">
+                      <form action="eliminar_equipamientos.php" method="post" onsubmit="return confirm('¿Eliminar este equipamiento?');">
                         <input type="hidden" name="id" value="<?= llamar($equipamiento["id_equipamiento"]) ?>">
                         <button class="boton_rojo boton-accion" type="submit" title="Eliminar equipamiento" aria-label="Eliminar equipamiento">
                           <img class="icono-boton" src="recursos/eliminar.png" alt="">
@@ -103,7 +100,8 @@ function llamar($valor): string
                       </form>
                     </div>
                   </td>
-                  <?php endforeach; ?>
+                </tr>
+              <?php endforeach; ?>
             </tbody>
           </table>
         </div>

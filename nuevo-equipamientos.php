@@ -3,27 +3,30 @@
 require_once "conexion.php";
 
 $mensajeError = "";
+$nombre = "";
+$descripcion = "";
+
+function llamar($valor): string
+{
+    return htmlspecialchars((string) ($valor ?? ""), ENT_QUOTES, "UTF-8");
+}
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $nombre = strtoupper(trim($_POST["nombre"] ?? ""));
     $descripcion = trim($_POST["descripcion"] ?? "");
-    $activo = trim($_POST["activo"] ?? "");
 
-    if (
-        $nombre === "" || $descripcion === "" || !in_array($activo, ["0", "1"], true)
-    ) {
+    if ($nombre === "" || $descripcion === "") {
         $mensajeError = "Complete correctamente todos los campos.";
     } else {
         try {
-            $activoNumero = (int) $activo;
             $guardarEquipamiento = $conexion->prepare(
-                "INSERT INTO equipamiento (nombre, descripcion, activo) VALUES (?, ?, ?)"
+                "INSERT INTO equipamiento (nombre, descripcion) VALUES (?, ?)"
             );
-            $guardarEquipamiento->bind_param("ssi", $nombre, $descripcion, $activoNumero);
+            $guardarEquipamiento->bind_param("ss", $nombre, $descripcion);
             $guardarEquipamiento->execute();
             $guardarEquipamiento->close();
 
-            header("Location: equipamientos.php");
+            header("Location: equipamientos.php?alta=exitosa");
             exit;
         } catch (mysqli_sql_exception $error) {
             $mensajeError = $error->getCode() === 1062
@@ -71,27 +74,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
       <section class="tarjeta">
         <?php if ($mensajeError !== ""): ?>
-          <p class="estado estado-critico" role="alert"><?= $mensajeError ?></p>
+          <p class="estado estado-critico" role="alert"><?= llamar($mensajeError) ?></p>
         <?php endif; ?>
 
         <form class="formulario formulario-dos-columnas" action="nuevo-equipamientos.php" method="post">
           <label for="nombre">
             Nombre
-            <input id="nombre" type="text" name="nombre" maxlength="100" required>
+            <input id="nombre" type="text" name="nombre" value="<?= llamar($nombre) ?>" maxlength="100" required>
           </label>
 
           <label for="descripcion">
             Descripción
-            <input id="descripcion" type="text" name="descripcion" maxlength="255" required>
-          </label>
-
-          <label for="estado">
-            Estado
-            <select id="estado" name="estado" required>
-              <option value="" disabled selected>Seleccionar</option>
-              <option value="1">Activo</option>
-              <option value="0">Inactivo</option>
-            </select>
+            <input id="descripcion" type="text" name="descripcion" value="<?= llamar($descripcion) ?>" maxlength="255" required>
           </label>
 
           <div class="acciones campo-completo">
