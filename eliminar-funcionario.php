@@ -1,8 +1,7 @@
-
+<?php
 
 require_once "conexion.php";
 
-// La eliminación solo se acepta desde el formulario POST de la ficha.
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     http_response_code(405);
     die("Método no permitido.");
@@ -12,19 +11,70 @@ $idFuncionario = filter_input(INPUT_POST, "id", FILTER_VALIDATE_INT);
 
 if ($idFuncionario === false || $idFuncionario === null || $idFuncionario < 1) {
     http_response_code(400);
-    die("El identificador del funcionario no es válido.");
+    die("La ID del funcionario no es válida.");
 }
 
-$conexion->query(
-    "DELETE FROM funcionario WHERE id_funcionario = $idFuncionario"
+// Buscar la persona asociada al funcionario
+$consulta = $conexion->prepare(
+    "SELECT id_persona
+     FROM funcionario
+     WHERE id_funcionario = ?"
 );
 
-// Por ahora el proyecto supone que id_funcionario e id_persona tienen el mismo valor.
-$conexion->query(
-    "DELETE FROM persona WHERE id_persona = $idFuncionario"
-);
+$consulta->bind_param("i", $idFuncionario);
+$consulta->execute();
 
-$conexion->close();
-header("Location: funcionario.php");
-exit;
+$resultado = $consulta->get_result();
+$funcionario = $resultado->fetch_assoc();
+
+$consulta->close();
+
+if (!$funcionario) {
+    $conexion->close();
+    http_response_code(404);
+    die("El funcionario no existe.");
+}
+
+$idPersona = $funcionario["id_persona"];
+
+$conexion->begin_transaction();
+
+try {
+
+    // Primero eliminar el funcionario
+    $eliminarFuncionario = $conexion->prepare(
+        "DELETE FROM funcionario WHERE id_funcionario = ?"
+    );
+
+    $eliminarFuncionario->bind_param("i", $idFuncionario);
+    $eliminarFuncionario->execute();
+    $eliminarFuncionario->close();
+
+    // Después eliminar la persona asociada
+    $eliminarPersona = $conexion->prepare(
+        "DELETE FROM persona WHERE id_persona = ?"
+    );
+
+    $eliminarPersona->bind_param("i", $idPersona);
+    $eliminarPersona->execute();
+    $eliminarPersona->close();
+
+    // Confirmar cambios
+    $conexion->commit();
+
+    $conexion->close();
+
+    header("Location: funcionario.php");
+    exit;
+
+} catch (Exception $e) {
+
+    // Si algo falla deshacer los cambios
+    $conexion->rollback();
+
+    $conexion->close();
+
+    http_response_code(500);
+    die("No se pudo eliminar el funcionario.");
+}
 ?>
