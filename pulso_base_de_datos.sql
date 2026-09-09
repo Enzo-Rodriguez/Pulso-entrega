@@ -79,7 +79,6 @@ CREATE TABLE IF NOT EXISTS equipamiento (
     id_equipamiento INT AUTO_INCREMENT,
     nombre VARCHAR(100) NOT NULL UNIQUE,
     descripcion VARCHAR(255),
-    activo BOOLEAN NOT NULL DEFAULT TRUE,
     PRIMARY KEY (id_equipamiento)
 ) ENGINE=InnoDB;
 
@@ -177,23 +176,3 @@ INSERT INTO estado_traslado (nombre) VALUES
     ('Finalizado'),
     ('Cancelado')
 ON DUPLICATE KEY UPDATE nombre = VALUES(nombre);
-
--- Registros de demostración para probar traslados y equipamiento más adelante.
-INSERT INTO ambulancia
-    (matricula, id_estado_ambulancia, marca, modelo, capacidad, activa)
-SELECT 'AMB-001', id_estado_ambulancia, 'Mercedes-Benz', 'Sprinter', 4, TRUE
-FROM estado_ambulancia
-WHERE nombre = 'Disponible'
-ON DUPLICATE KEY UPDATE matricula = VALUES(matricula);
-
-INSERT INTO equipamiento (nombre, descripcion, activo) VALUES
-    ('Desfibrilador', 'Equipo para atención de emergencias cardíacas', TRUE),
-    ('Camilla', 'Camilla de traslado regulable', TRUE),
-    ('Oxígeno portátil', 'Cilindro portátil con regulador', TRUE)
-ON DUPLICATE KEY UPDATE nombre = VALUES(nombre);
-
-INSERT INTO ambulancia_equipamiento (matricula, id_equipamiento, cantidad)
-SELECT 'AMB-001', id_equipamiento, 1
-FROM equipamiento
-WHERE nombre IN ('Desfibrilador', 'Camilla', 'Oxígeno portátil')
-ON DUPLICATE KEY UPDATE cantidad = VALUES(cantidad);
