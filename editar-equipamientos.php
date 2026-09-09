@@ -2,9 +2,9 @@
 
 require_once "conexion.php";
 
-$equipamientos = trim($_GET["equipamiento"] ?? "");
+$idEquipamiento = (int) ($_GET["id_equipamiento"] ?? 0);
 
-if ($equipamientos === "") {
+if ($idEquipamiento <= 0) {
     http_response_code(400);
     die("El equipamiento no es válido.");
 }
@@ -12,8 +12,9 @@ if ($equipamientos === "") {
 $resultado = $conexion->query(
     "SELECT id_equipamiento, nombre, descripcion
      FROM equipamiento
-     WHERE id_equipamiento = '$equipamientos'"
+     WHERE id_equipamiento = $idEquipamiento"
 );
+
 $equipamiento = $resultado->fetch_assoc();
 
 if ($equipamiento === null) {
@@ -24,117 +25,165 @@ if ($equipamiento === null) {
 $mensajeError = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
     $nombre = trim($_POST["nombre"] ?? "");
     $descripcion = trim($_POST["descripcion"] ?? "");
 
-    if (
-        $nombre === "" || $descripcion === "" || $estado === ""
-    ) {
-        $mensajeError = "Complete correctamente todos los campos.";
-    } else {
-        try {
-            $conexion->query(
-                "UPDATE equipamiento
-                 SET nombre = '$nombre', descripcion = '$descripcion', id_equipamiento = '$estado'
-                 WHERE id_equipamiento = '$equipamientos'"
-            );
+    if ($nombre === "" || $descripcion === "") {
 
+        $mensajeError = "Complete correctamente todos los campos.";
+
+    } else {
+
+        $nombreSeguro = $conexion->real_escape_string($nombre);
+        $descripcionSegura = $conexion->real_escape_string($descripcion);
+
+        $exito = $conexion->query(
+            "UPDATE equipamiento
+             SET nombre = '$nombreSeguro',
+                 descripcion = '$descripcionSegura'
+             WHERE id_equipamiento = $idEquipamiento"
+        );
+
+        if ($exito) {
             header("Location: equipamientos.php");
             exit;
-        } catch (mysqli_sql_exception $error) {
-            $mensajeError = "No se pudieron guardar los cambios.";
         }
+
+        $mensajeError = "No se pudieron guardar los cambios.";
+
+        // Refleja en pantalla lo que el usuario intentó guardar, no lo viejo de la BD
+        $equipamiento["nombre"] = $nombre;
+        $equipamiento["descripcion"] = $descripcion;
     }
 }
 
-$resultadoEstados = $conexion->query(
-    "SELECT id_equipamiento, nombre
-     FROM id_equipamiento
-     ORDER BY id_equipamiento"
-);
-$estados = $resultadoEstados->fetch_all(MYSQLI_ASSOC);
-
 function escapar($valor): string
 {
-    return htmlspecialchars((string) ($valor ?? ""), ENT_QUOTES, "UTF-8");
+    return htmlspecialchars(
+        (string) ($valor ?? ""),
+        ENT_QUOTES,
+        "UTF-8"
+    );
 }
 
 ?>
+
 <!doctype html>
 <html lang="es">
-  <head>
+
+<head>
+
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>PULSO - Editar equipamiento</title>
     <link rel="stylesheet" href="estilos.css">
-    <link rel="icon" type="image/png" href="recursos/logo-pulsoA.png">
-  </head>
-  <body>
-    <header class="barra-superior">
-      <a class="nombre" href="panel.html">
+    <link rel="icon"
+          type="image/png"
+          href="recursos/logo-pulsoA.png">
+
+</head>
+
+<body>
+
+<header class="barra-superior">
+    <a class="marca" href="panel.html">
         <img src="recursos/logo-pulsoA.png" alt="">
         <span>PULSO</span>
-      </a>
-      <nav class="navegacion" aria-label="Páginas principales">
+    </a>
+
+    <nav class="navegacion" aria-label="Páginas principales">
+
         <a href="panel.html">Panel</a>
         <a href="pacientes.php">Pacientes</a>
         <a href="funcionario.php">Funcionarios</a>
         <a href="documentos.php">Documentos</a>
-        <a class="enlace-activo" href="ambulancia.php">Ambulancias</a>
-        <a href="equipamientos.php">Equipamientos</a>
+        <a href="ambulancia.php">Ambulancias</a>
+        <a class="enlace-activo" href="equipamientos.php">
+            Equipamientos
+        </a>
         <a href="index.html">Inicio</a>
-      </nav>
-    </header>
+    </nav>
+</header>
 
-    <main class="pagina">
-      <section class="encabezado-pagina">
+
+<main class="pagina">
+    <section class="encabezado-pagina">
+
         <div>
-          <p class="subtitulo">Gestión de unidades</p>
-          <h1>Editar equipamiento</h1>
-          <p>Actualice los datos del equipamiento <?= escapar($equipamiento["id_equipamiento"]) ?>.</p>
+            <p class="subtitulo">Gestión de equipamientos</p>
+            <h1>Editar equipamiento</h1>
+            <p>
+                Actualice los datos del equipamiento
+                <?= escapar($equipamiento["id_equipamiento"]) ?>.
+            </p>
+
         </div>
-      </section>
 
-      <section class="tarjeta">
+    </section>
+
+
+    <section class="tarjeta">
+
         <?php if ($mensajeError !== ""): ?>
-          <p class="estado estado-critico" role="alert"><?= $mensajeError ?></p>
+            <p class="estado estado-critico" role="alert">
+                <?= escapar($mensajeError) ?>
+            </p>
+
         <?php endif; ?>
+        <form
+            class="formulario formulario-dos-columnas"
+            action="editar-equipamientos.php?id_equipamiento=<?= urlencode($equipamiento["id_equipamiento"]) ?>"
+            method="post"
+        >
 
-        <form class="formulario formulario-dos-columnas" action="editar-equipamientos.php?id_equipamiento=<?= urlencode($equipamiento["id_equipamiento"]) ?>" method="post">
-          <label for="equipamientos">
-            Nombre
-            <input id="equipamientos" type="text" value="<?= escapar($equipamiento["id_equipamiento"]) ?>" readonly>
-          </label>
+            <label for="id_equipamiento">
+                ID del equipamiento
+                <input
+                    id="id_equipamiento"
+                    type="text"
+                    value="<?= escapar($equipamiento["id_equipamiento"]) ?>"
+                    readonly
+                >
+            </label>
+            <label for="nombre">
+                Nombre
+                <input
+                    id="nombre"
+                    type="text"
+                    name="nombre"
+                    value="<?= escapar($equipamiento["nombre"]) ?>"
+                    maxlength="100"
+                    required
+                >
+            </label>
 
-          <label for="estado">
-            Estado
-            <select id="estado" name="id_equipamiento" required>
-              <?php foreach ($estados as $estado): ?>
-                <option
-                  value="<?= $estado["id_equipamiento"] ?>"
-                  <?= (int) $equipamiento["id_estado_equipamiento"] === (int) $estado["id_equipamiento"] ? "selected" : "" ?>
-                ><?= escapar($estado["nombre"]) ?></option>
-              <?php endforeach; ?>
-            </select>
-          </label>
+            <label for="descripcion">
+                Descripción
 
-          <label for="nombre">
-            Nombre
-            <input id="nombre" type="text" name="nombre" value="<?= escapar($equipamiento["nombre"]) ?>" maxlength="50" required>
-          </label>
+                <input
+                    id="descripcion"
+                    type="text"
+                    name="descripcion"
+                    value="<?= escapar($equipamiento["descripcion"]) ?>"
+                    maxlength="255"
+                    required
+                >
 
-          <label for="descripcion">
-            Descripcion
-            <input id="descripcion" type="text" name="descripcion" value="<?= escapar($equipamiento["descripcion"]) ?>" maxlength="50" required>
-          </label>
-
-
-          <div class="acciones campo-completo">
-            <a class="boton boton-secundario" href="ficha-equipamiento.php?id_equipamiento=<?= urlencode($equipamiento["id_equipamiento"]) ?>">Cancelar</a>
-            <button class="boton" type="submit">Guardar cambios</button>
-          </div>
+            </label>
+            <div class="acciones campo-completo">      
+            <a
+                    class="boton boton-secundario"
+                    href="equipamientos.php"
+                >
+                    Cancelar
+                </a>
+                <button class="boton" type="submit">
+                    Guardar cambios
+                </button>
+            </div>
         </form>
-      </section>
-    </main>
-  </body>
+    </section>
+</main>
+</body>
 </html>

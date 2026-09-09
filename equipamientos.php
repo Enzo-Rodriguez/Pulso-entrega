@@ -89,7 +89,7 @@ function llamar($valor): string
                   <td><?= llamar($equipamiento["descripcion"]) ?></td>
                   <td>
                     <div class="acciones acciones-tabla">
-                      <a class="boton boton-accion" href="editar-equipamientos.php?equipamiento=<?= llamar($equipamiento["id_equipamiento"]) ?>">
+                      <a class="boton boton-accion" href="editar-equipamientos.php?id_equipamiento=<?= llamar($equipamiento["id_equipamiento"]) ?>">
                         Actualizar
                       </a>
                       <form action="eliminar_equipamientos.php" method="post" onsubmit="return confirm('¿Eliminar este equipamiento?');">
