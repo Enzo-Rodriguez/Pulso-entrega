@@ -14,17 +14,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $direccion = trim($_POST["direccion"] ?? "");
     $email = trim($_POST["email"] ?? "");
     $activo = trim($_POST["activo"] ?? "");
-    $nombre = trim($_POST["nombre"] ?? "");
+    $nombreTipo = trim($_POST["nombre"] ?? "");
     
  // Listas cerradas para impedir valores que no existen en los select del formulario.
     $sexosValidos = ["masculino", "femenino", "otro"];
+    $tiposValidos = ["Médico", "Administrativo", "Conductor", "Enfermeria"];
 
 
     // PHP vuelve a validar lo obligatorio aunque el navegador ya use required.
     if (
-        $nombres === "" || $apellidos === "" || $ci === "" ||       
-        ($activo !== "" || !in_array($activo, ["0", "1"], true)) ||
-        ($sexo !== "" && !in_array($sexo, $sexosValidos, true))
+        $nombres === "" || 
+        $apellidos === "" || 
+        $ci === "" ||       
+        !in_array($activo, ["0", "1"], true) ||
+        ($sexo !== "" && !in_array($sexo, $sexosValidos, true)) ||
+        !in_array($nombreTipo, $tiposValidos, true)
     ) {
         $mensajeError = "Complete correctamente todos los campos obligatorios.";
     } else {
@@ -33,46 +37,82 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             if ($fechaNacimiento === "") {
                 $fechaNacimiento = null;
             }
+            $consultaTipo = $conexion->prepare(
+              "SELECT id_tipo_funcionario 
+              FROM tipo_funcionario 
+              WHERE nombre = ?"
+              );  
+            $consultaTipo->bind_param("s", $nombreTipo);
+            $consultaTipo->execute();
 
-            $fechaNacimientoParaSQL = $fechaNacimiento === null
-                ? "NULL"
-                : "'$fechaNacimiento'";
+            $resultadoTipo = $consultaTipo->get_result();
+
+            if ($resultadoTipo->num_rows === 0) {
+                throw new Exception("Tipo de funcionario no válido.");
+            }
+            $tipoFuncionario = $resultadoTipo->fetch_assoc();
+            $idtipofuncionario = $tipoFuncionario["id_tipo_funcionario"];
+            $consultaTipo->close();
 
             // Guarda primero los datos personales.
-            $conexion->query(
+            $consultaPersona = $conexion->prepare(
                 "INSERT INTO persona
                     (nombres, apellidos, ci, telefono, fecha_nacimiento, sexo, direccion, email)
                  VALUES
-                    ('$nombres', '$apellidos', '$ci', '$telefono',
-                     $fechaNacimientoParaSQL, '$sexo', '$direccion', '$email')"
+                    (?, ?, ?, ?, ?, ?, ?, ?)"
             );
-
+            $consultaPersona->bind_param(
+                "ssssssss",
+                $nombres,
+                $apellidos,
+                $ci,
+                $telefono,
+                $fechaNacimiento,
+                $sexo,
+                $direccion,
+                $email
+            );
+            $consultaPersona->execute();
             // Recupera el id generado para relacionar ambas tablas.
             $idPersona = $conexion->insert_id;
-
+            $consultaPersona->close();
+          
             // MySQL completa fecha_registro y activo con sus valores predeterminados.
-           $conexion->query(
-                "INSERT INTO tipo_funcionario
-                    (nombre)
-                 VALUES
-                    ('$nombre')"
+            
+            $consultaTipo = $conexion->prepare(
+                "SELECT id_tipo_funcionario 
+                 FROM tipo_funcionario 
+                 WHERE nombre = ?"
             );
-            $conexion->query(
+            $consultafuncionario = $conexion->prepare(
                 "INSERT INTO funcionario
                     (id_persona, id_tipo_funcionario, activo)
                  VALUES
-                    ($idPersona, '$idtipofuncionario', '$activo')"
+                    (?, ?, ?)"
             );
-            
+            $consultafuncionario->bind_param(
+                "iii",
+                $idPersona,
+                $idtipofuncionario,
+                $activo
+            );
+            $consultafuncionario->execute();
+            $consultafuncionario->close();           
 
             // Vuelve al listado para mostrar el nuevo funcionario.
             header("Location: funcionario.php");
             exit;
+
         } catch (mysqli_sql_exception $error) {
-            $mensajeError = $error->getCode() === 1062
-                ? "Ya existe una persona registrada con esa cédula."
-                : "No se pudo registrar el funcionario. Intente nuevamente.";
-        }
+           if ($error->getCode() === 1062) {
+                $mensajeError = "Ya existe una persona registrada con esa cédula.";
+            } else {
+                $mensajeError = "No se pudo registrar el funcionario. Intente nuevamente.";
+            }
+        } catch (Exception $error) {
+            $mensajeError = $error->getMessage();
+    }
+            
     }
 }
 
@@ -118,7 +158,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <?php endif; ?>
 
         <!-- required ayuda al usuario; la validación definitiva igualmente se realiza en PHP. -->
-        <form class="formulario formulario-dos-columnas" action="funcionario.php" method="post">
+        <form class="formulario formulario-dos-columnas" action="nuevo-funcionario.php" method="post">
           <label for="nombres">
             Nombre/s
             <input id="nombres" type="text" name="nombres" required>
