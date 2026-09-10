@@ -1,6 +1,6 @@
 <?php
 
-require_once "conexion.php";
+require_once "../conexion.php";
 
 $resultado = $conexion->query(
     "SELECT
@@ -36,23 +36,23 @@ $clasesEstados = [
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>PULSO - Ambulancias</title>
-    <link rel="stylesheet" href="estilos.css">
-    <link rel="icon" type="image/png" href="recursos/logo-pulsoA.png">
+    <link rel="stylesheet" href="../../css/estilos.css">
+    <link rel="icon" type="image/png" href="../../recursos/logo-pulsoA.png">
   </head>
   <body>
     <header class="barra-superior">
-      <a class="marca" href="panel.html">
-        <img src="recursos/logo-pulsoA.png" alt="">
+      <a class="marca" href="../../panel.html">
+        <img src="../../recursos/logo-pulsoA.png" alt="">
         <span>PULSO</span>
       </a>
       <nav class="navegacion" aria-label="Páginas principales">
-        <a href="panel.html">Panel</a>
-        <a href="pacientes.php">Pacientes</a>
-        <a href="funcionario.php">Funcionarios</a>
-        <a href="documentos.php">Documentos</a>
-        <a class="enlace-activo" href="ambulancia.php">Ambulancias</a>
-        <a href="equipamientos.php">Equipamientos</a>
-        <a href="index.html">Inicio</a>
+        <a href="../../panel.html">Panel</a>
+        <a href="../pacientes/pacientes.php">Pacientes</a>
+        <a href="../funcionarios/funcionario.php">Funcionarios</a>
+        <a href="../documentos/documentos.php">Documentos</a>
+        <a class="enlace-activo" href="../ambulancias/ambulancia.php">Ambulancias</a>
+        <a href="../equipamientos/equipamientos.php">Equipamientos</a>
+        <a href="../../index.html">Inicio</a>
       </nav>
     </header>
 

@@ -1,6 +1,6 @@
 <?php
 
-require_once "conexion.php";
+require_once "../conexion.php";
 
 // Obtiene los documentos registrados en el sistema.
 $resultadoDocumentos = $conexion->query(
@@ -18,7 +18,7 @@ $cargaExitosa = ($_GET["carga"] ?? "") === "exitosa";
 $eliminacionExitosa = ($_GET["eliminacion"] ?? "") === "exitosa";
 $actualizacionExitosa = ($_GET["actualizacion"] ?? "") === "exitosa";
 
-function llamar($contenido): string
+function escapar($contenido): string
 {
     return htmlspecialchars((string) ($contenido ?? ""), ENT_QUOTES, "UTF-8");
 }
@@ -30,23 +30,23 @@ function llamar($contenido): string
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>PULSO - Documentos</title>
-    <link rel="stylesheet" href="estilos.css">
-    <link rel="icon" type="image/png" href="recursos/logo-pulsoA.png">
+    <link rel="stylesheet" href="../../css/estilos.css">
+    <link rel="icon" type="image/png" href="../../recursos/logo-pulsoA.png">
   </head>
   <body>
     <header class="barra-superior">
-      <a class="marca" href="panel.html">
-        <img src="recursos/logo-pulsoA.png" alt="">
+      <a class="marca" href="../../panel.html">
+        <img src="../../recursos/logo-pulsoA.png" alt="">
         <span>PULSO</span>
       </a>
       <nav class="navegacion" aria-label="Páginas principales">
-        <a href="panel.html">Panel</a>
-        <a href="pacientes.php">Pacientes</a>
-        <a href="funcionario.php">Funcionarios</a>
-        <a class="enlace-activo" href="documentos.php">Documentos</a>
-        <a href="ambulancia.php">Ambulancias</a>
-        <a href="equipamientos.php">Equipamientos</a>
-        <a href="index.html">Inicio</a>
+        <a href="../../panel.html">Panel</a>
+        <a href="../pacientes/pacientes.php">Pacientes</a>
+        <a href="../funcionarios/funcionario.php">Funcionarios</a>
+        <a class="enlace-activo" href="../documentos/documentos.php">Documentos</a>
+        <a href="../ambulancias/ambulancia.php">Ambulancias</a>
+        <a href="../equipamientos/equipamientos.php">Equipamientos</a>
+        <a href="../../index.html">Inicio</a>
       </nav>
     </header>
 
@@ -98,22 +98,22 @@ function llamar($contenido): string
 
               <?php foreach ($documentos as $documento): ?>
                 <tr>
-                  <td><strong><?= llamar($documento["titulo"]) ?></strong></td>
-                  <td><?= llamar($documento["fecha_carga"]) ?></td>
+                  <td><strong><?= escapar($documento["titulo"]) ?></strong></td>
+                  <td><?= escapar($documento["fecha_carga"]) ?></td>
                   <td>
-                    <a href="<?= llamar($documento["ruta_archivo"]) ?>" target="_blank" rel="noopener">
-                      <?= llamar(basename($documento["ruta_archivo"])) ?>
+                    <a href="../../<?= escapar($documento["ruta_archivo"]) ?>" target="_blank" rel="noopener">
+                      <?= escapar(basename($documento["ruta_archivo"])) ?>
                     </a>
                   </td>
                   <td>
                     <div class="acciones acciones-tabla">
-                      <a class="boton boton-accion" href="editar-documento.php?id=<?= llamar($documento["id_documento"]) ?>">
+                      <a class="boton boton-accion" href="editar-documento.php?id=<?= escapar($documento["id_documento"]) ?>">
                         Actualizar
                       </a>
                       <form action="eliminar-documento.php" method="post" onsubmit="return confirm('¿Eliminar este documento?');">
-                        <input type="hidden" name="id" value="<?= llamar($documento["id_documento"]) ?>">
-                        <button class="boton_rojo boton-accion" type="submit" title="Eliminar documento" aria-label="Eliminar documento">
-                          <img class="icono-boton" src="recursos/eliminar.png" alt="">
+                        <input type="hidden" name="id" value="<?= escapar($documento["id_documento"]) ?>">
+                        <button class="boton-rojo boton-accion" type="submit" title="Eliminar documento" aria-label="Eliminar documento">
+                          <img class="icono-boton" src="../../recursos/eliminar.png" alt="">
                         </button>
                       </form>
                     </div>

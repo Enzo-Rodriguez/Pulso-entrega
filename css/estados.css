@@ -1,0 +1,34 @@
+.estado {
+  display: inline-flex;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.estado-estable,
+.estado-publicado {
+  color: var(--verde-oscuro);
+  background: var(--verde-claro);
+}
+
+.estado-observacion {
+  color: var(--amarillo-texto);
+  background: var(--amarillo-claro);
+}
+
+.estado-critico {
+  color: var(--rojo-texto);
+  background: var(--rojo-claro);
+}
+
+.estado-alta {
+  color: #135e7d;
+  background: #e0f1f8;
+}
+
+.estado-inactivo {
+  color: #50606c;
+  background: var(--gris-claro);
+}

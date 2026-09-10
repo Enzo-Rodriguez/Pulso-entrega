@@ -1,11 +1,10 @@
 <?php
 
-require_once "conexion.php";
+require_once "../conexion.php";
 
 $resultado = $conexion->query(
   "SELECT
         funcionario.id_funcionario,
-        funcionario.id_tipo_funcionario,
         funcionario.activo,
         persona.ci,
         persona.nombres,
@@ -31,24 +30,24 @@ function escapar($valor)
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PULSO - Funcionarios</title>
-  <link rel="stylesheet" href="estilos.css">
-  <link rel="icon" type="image/png" href="recursos/logo-pulsoA.png">
+    <link rel="stylesheet" href="../../css/estilos.css">
+  <link rel="icon" type="image/png" href="../../recursos/logo-pulsoA.png">
 </head>
 
 <body>
   <header class="barra-superior">
-    <a class="marca" href="panel.html">
-      <img src="recursos/logo-pulsoA.png" alt="">
+    <a class="marca" href="../../panel.html">
+      <img src="../../recursos/logo-pulsoA.png" alt="">
       <span>PULSO</span>
     </a>
     <nav class="navegacion" aria-label="Páginas principales">
-      <a href="panel.html">Panel</a>
-      <a href="pacientes.php">Pacientes</a>
-      <a class="enlace-activo" href="funcionario.php">Funcionarios</a>
-      <a href="documentos.php">Documentos</a>
-      <a href="ambulancia.php">Ambulancias</a>
-      <a href="equipamientos.php">Equipamientos</a>
-      <a href="index.html">Inicio</a>
+      <a href="../../panel.html">Panel</a>
+      <a href="../pacientes/pacientes.php">Pacientes</a>
+      <a class="enlace-activo" href="../funcionarios/funcionario.php">Funcionarios</a>
+      <a href="../documentos/documentos.php">Documentos</a>
+      <a href="../ambulancias/ambulancia.php">Ambulancias</a>
+      <a href="../equipamientos/equipamientos.php">Equipamientos</a>
+      <a href="../../index.html">Inicio</a>
     </nav>
   </header>
 
@@ -64,25 +63,13 @@ function escapar($valor)
       </div>
     </section>
 
-    <section class="tarjeta" id="listado-funcionarios">
-      <form id="filtros-funcionarios" class="filtros" action="funcionario.php">
-        <input id="busqueda-funcionario" name="busqueda" type="search"
-          placeholder="Buscar por nombre, cédula o teléfono">
-        <select id="filtro-estado" name="estado" aria-label="Filtrar por estado laboral">
-          <option value="">Todos los estados</option>
-          <option value="Activo">Activo</option>
-          <option value="Inactivo">Inactivo</option>
-        </select>
-        <button class="boton" type="submit">Buscar</button>
-      </form>
-
+    <section class="tarjeta">
       <p class="cantidad-resultados">
-        <span id="contador"><?= count($funcionarios) ?></span>
-        <span id="etiqueta-resultados"><?= count($funcionarios) === 1 ? "resultado" : "resultados" ?></span>
+        <?= count($funcionarios) ?> <?= count($funcionarios) === 1 ? "resultado" : "resultados" ?>
       </p>
 
       <div class="contenedor-tabla">
-        <table class="tabla" id="tabla-funcionarios">
+        <table class="tabla">
           <thead>
             <tr>
               <th>Funcionario</th>
@@ -105,7 +92,7 @@ function escapar($valor)
               $estadoTexto = $esActivo ? "Activo" : "Inactivo";
               $estadoClase = $esActivo ? "estado-estable" : "estado-inactivo";
               ?>
-              <tr data-estado="<?= $estadoTexto ?>">
+              <tr>
                 <td>
                   <strong><?= escapar($funcionario["nombres"] . " " . $funcionario["apellidos"]) ?></strong>
                   <?php if (!empty($funcionario["telefono"])): ?>
@@ -124,11 +111,11 @@ function escapar($valor)
                   <form action="eliminar-funcionario.php" method="POST" style="display: inline;">
                     <input type="hidden" name="id" value="<?= $funcionario['id_funcionario'] ?>">
 
-                    <button class="boton_rojo boton-accion" type="submit" title="Eliminar funcionario"
+                    <button class="boton-rojo boton-accion" type="submit" title="Eliminar funcionario"
                       aria-label="Eliminar funcionario"
                       onclick="return confirm('¿Está seguro de que desea eliminar este funcionario?')">
 
-                      <img class="icono-boton" src="recursos/eliminar.png" alt="">
+                      <img class="icono-boton" src="../../recursos/eliminar.png" alt="">
                     </button>
                   </form>
                 </td>
@@ -140,41 +127,6 @@ function escapar($valor)
     </section>
   </main>
 
-  <script>
-    const formularioFiltros = document.getElementById("filtros-funcionarios");
-    const busquedaFuncionario = document.getElementById("busqueda-funcionario");
-    const filtroEstado = document.getElementById("filtro-estado");
-    const filas = document.querySelectorAll("#tabla-funcionarios tbody tr[data-estado]");
-    const contador = document.getElementById("contador");
-    const etiquetaResultados = document.getElementById("etiqueta-resultados");
-
-    function normalizar(texto) {
-      return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-    }
-
-    function actualizarListado() {
-      const texto = normalizar(busquedaFuncionario.value.trim());
-      const estado = filtroEstado.value;
-      let visibles = 0;
-
-      filas.forEach((fila) => {
-        const coincideTexto = texto === "" || normalizar(fila.textContent).includes(texto);
-        const coincideEstado = estado === "" || fila.dataset.estado === estado;
-        fila.hidden = !coincideTexto || !coincideEstado;
-        if (!fila.hidden) visibles += 1;
-      });
-
-      contador.textContent = visibles;
-      etiquetaResultados.textContent = visibles === 1 ? "resultado" : "resultados";
-    }
-
-    formularioFiltros.addEventListener("submit", (evento) => {
-      evento.preventDefault();
-      actualizarListado();
-    });
-    busquedaFuncionario.addEventListener("input", actualizarListado);
-    filtroEstado.addEventListener("change", actualizarListado);
-  </script>
 </body>
 
 </html>

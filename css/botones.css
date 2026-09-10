@@ -1,0 +1,69 @@
+.boton,
+.boton-rojo {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 6px;
+  padding: 10px 16px;
+  color: var(--blanco);
+  cursor: pointer;
+  font-weight: 800;
+  text-align: center;
+}
+
+.boton {
+  background: var(--verde);
+}
+
+.boton:hover {
+  background: var(--verde-oscuro);
+}
+
+.boton-secundario {
+  color: var(--azul);
+  background: var(--azul-claro);
+}
+
+.boton-secundario:hover {
+  color: var(--blanco);
+  background: var(--azul);
+}
+
+.boton-rojo {
+  background: var(--rojo-texto);
+}
+
+.boton-rojo:hover {
+  background: #46060d;
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.acciones-tabla {
+  flex-wrap: nowrap;
+}
+
+.boton-accion {
+  min-height: 36px;
+  gap: 7px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.tabla .boton-accion {
+  color: var(--blanco);
+}
+
+.icono-boton {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}

@@ -1,6 +1,6 @@
 <?php
 
-require_once "conexion.php";
+require_once "../conexion.php";
 
 $resultado = $conexion->query(
     "SELECT
@@ -13,8 +13,9 @@ $resultado = $conexion->query(
 
 $equipamientos = $resultado->fetch_all(MYSQLI_ASSOC);
 $altaExitosa = ($_GET["alta"] ?? "") === "exitosa";
+$eliminacionExitosa = ($_GET["eliminacion"] ?? "") === "exitosa";
 
-function llamar($valor): string
+function escapar($valor): string
 {
     return htmlspecialchars((string) ($valor ?? ""), ENT_QUOTES, "UTF-8");
 }
@@ -26,23 +27,23 @@ function llamar($valor): string
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>PULSO - Equipamientos</title>
-    <link rel="stylesheet" href="estilos.css">
-    <link rel="icon" type="image/png" href="recursos/logo-pulsoA.png">
+    <link rel="stylesheet" href="../../css/estilos.css">
+    <link rel="icon" type="image/png" href="../../recursos/logo-pulsoA.png">
   </head>
   <body>
     <header class="barra-superior">
-      <a class="marca" href="panel.html">
-        <img src="recursos/logo-pulsoA.png" alt="">
+      <a class="marca" href="../../panel.html">
+        <img src="../../recursos/logo-pulsoA.png" alt="">
         <span>PULSO</span>
       </a>
       <nav class="navegacion" aria-label="Páginas principales">
-        <a href="panel.html">Panel</a>
-        <a href="pacientes.php">Pacientes</a>
-        <a href="funcionario.php">Funcionarios</a>
-        <a href="documentos.php">Documentos</a>
-        <a href="ambulancia.php">Ambulancias</a>
-        <a class="enlace-activo" href="equipamientos.php">Equipamientos</a>
-        <a href="index.html">Inicio</a>
+        <a href="../../panel.html">Panel</a>
+        <a href="../pacientes/pacientes.php">Pacientes</a>
+        <a href="../funcionarios/funcionario.php">Funcionarios</a>
+        <a href="../documentos/documentos.php">Documentos</a>
+        <a href="../ambulancias/ambulancia.php">Ambulancias</a>
+        <a class="enlace-activo" href="../equipamientos/equipamientos.php">Equipamientos</a>
+        <a href="../../index.html">Inicio</a>
       </nav>
     </header>
 
@@ -61,6 +62,10 @@ function llamar($valor): string
       <section class="tarjeta">
         <?php if ($altaExitosa): ?>
           <p class="estado estado-publicado" role="status">Equipamiento registrado correctamente.</p>
+        <?php endif; ?>
+
+        <?php if ($eliminacionExitosa): ?>
+          <p class="estado estado-publicado" role="status">Equipamiento eliminado correctamente.</p>
         <?php endif; ?>
 
         <p class="cantidad-resultados">
@@ -85,17 +90,17 @@ function llamar($valor): string
 
               <?php foreach ($equipamientos as $equipamiento): ?>
                 <tr>
-                  <td><strong><?= llamar($equipamiento["nombre"]) ?></strong></td>
-                  <td><?= llamar($equipamiento["descripcion"]) ?></td>
+                  <td><strong><?= escapar($equipamiento["nombre"]) ?></strong></td>
+                  <td><?= escapar($equipamiento["descripcion"]) ?></td>
                   <td>
                     <div class="acciones acciones-tabla">
-                      <a class="boton boton-accion" href="editar-equipamientos.php?id_equipamiento=<?= llamar($equipamiento["id_equipamiento"]) ?>">
+                      <a class="boton boton-accion" href="editar-equipamientos.php?id_equipamiento=<?= escapar($equipamiento["id_equipamiento"]) ?>">
                         Actualizar
                       </a>
                       <form action="eliminar_equipamientos.php" method="post" onsubmit="return confirm('¿Eliminar este equipamiento?');">
-                        <input type="hidden" name="id" value="<?= llamar($equipamiento["id_equipamiento"]) ?>">
-                        <button class="boton_rojo boton-accion" type="submit" title="Eliminar equipamiento" aria-label="Eliminar equipamiento">
-                          <img class="icono-boton" src="recursos/eliminar.png" alt="">
+                        <input type="hidden" name="id" value="<?= escapar($equipamiento["id_equipamiento"]) ?>">
+                        <button class="boton-rojo boton-accion" type="submit" title="Eliminar equipamiento" aria-label="Eliminar equipamiento">
+                          <img class="icono-boton" src="../../recursos/eliminar.png" alt="">
                         </button>
                       </form>
                     </div>

@@ -137,7 +137,7 @@ CREATE TABLE IF NOT EXISTS traslado (
     FOREIGN KEY (id_estado_traslado) REFERENCES estado_traslado(id_estado_traslado)
 ) ENGINE=InnoDB;
 
--- Catálogos mínimos para que los próximos formularios tengan opciones reales.
+-- Valores iniciales de los catálogos.
 INSERT INTO tipo_funcionario (nombre) VALUES
     ('Médico'),
     ('Enfermería'),

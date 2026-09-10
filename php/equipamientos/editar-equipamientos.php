@@ -1,6 +1,6 @@
 <?php
 
-require_once "conexion.php";
+require_once "../conexion.php";
 
 $idEquipamiento = (int) ($_GET["id_equipamiento"] ?? 0);
 
@@ -77,32 +77,32 @@ function escapar($valor): string
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>PULSO - Editar equipamiento</title>
-    <link rel="stylesheet" href="estilos.css">
+    <link rel="stylesheet" href="../../css/estilos.css">
     <link rel="icon"
           type="image/png"
-          href="recursos/logo-pulsoA.png">
+          href="../../recursos/logo-pulsoA.png">
 
 </head>
 
 <body>
 
 <header class="barra-superior">
-    <a class="marca" href="panel.html">
-        <img src="recursos/logo-pulsoA.png" alt="">
+    <a class="marca" href="../../panel.html">
+        <img src="../../recursos/logo-pulsoA.png" alt="">
         <span>PULSO</span>
     </a>
 
     <nav class="navegacion" aria-label="Páginas principales">
 
-        <a href="panel.html">Panel</a>
-        <a href="pacientes.php">Pacientes</a>
-        <a href="funcionario.php">Funcionarios</a>
-        <a href="documentos.php">Documentos</a>
-        <a href="ambulancia.php">Ambulancias</a>
-        <a class="enlace-activo" href="equipamientos.php">
+        <a href="../../panel.html">Panel</a>
+        <a href="../pacientes/pacientes.php">Pacientes</a>
+        <a href="../funcionarios/funcionario.php">Funcionarios</a>
+        <a href="../documentos/documentos.php">Documentos</a>
+        <a href="../ambulancias/ambulancia.php">Ambulancias</a>
+        <a class="enlace-activo" href="../equipamientos/equipamientos.php">
             Equipamientos
         </a>
-        <a href="index.html">Inicio</a>
+        <a href="../../index.html">Inicio</a>
     </nav>
 </header>
 
@@ -174,7 +174,7 @@ function escapar($valor): string
             <div class="acciones campo-completo">      
             <a
                     class="boton boton-secundario"
-                    href="equipamientos.php"
+                    href="../equipamientos/equipamientos.php"
                 >
                     Cancelar
                 </a>

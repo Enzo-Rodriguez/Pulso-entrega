@@ -1,0 +1,28 @@
+@media (max-width: 760px) {
+  .barra-superior,
+  .encabezado-pagina {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .navegacion {
+    justify-content: flex-start;
+    gap: 10px;
+  }
+
+  .rejilla,
+  .formulario-dos-columnas,
+  .detalle-paciente,
+  .detalle-ambulancia,
+  .pantalla-ingreso {
+    grid-template-columns: 1fr;
+  }
+
+  .pagina {
+    margin: 24px auto;
+  }
+
+  h1 {
+    font-size: 32px;
+  }
+}

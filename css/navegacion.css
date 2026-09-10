@@ -1,0 +1,52 @@
+.barra-superior {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 78px;
+  padding: 12px 4%;
+  border-bottom: 3px solid var(--verde);
+  background: var(--blanco);
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--azul);
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.marca img {
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  background: var(--blanco);
+  object-fit: contain;
+}
+
+.navegacion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 20px;
+}
+
+.navegacion a {
+  padding: 8px 2px;
+  border-bottom: 2px solid transparent;
+  color: var(--texto-suave);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.navegacion a:hover,
+.navegacion a:focus-visible,
+.navegacion .enlace-activo {
+  border-bottom-color: var(--verde);
+  outline: none;
+  color: var(--azul);
+}

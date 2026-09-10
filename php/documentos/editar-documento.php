@@ -1,11 +1,11 @@
 <?php
 
-require_once "conexion.php";
+require_once "../conexion.php";
 
 $mensajeError = "";
 $idDocumento = filter_input(INPUT_GET, "id", FILTER_VALIDATE_INT);
 
-function llamar($contenido): string
+function escapar($contenido): string
 {
     return htmlspecialchars((string) ($contenido ?? ""), ENT_QUOTES, "UTF-8");
 }
@@ -55,7 +55,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $rutaParaBase = $rutaArchivoActual;
 
         if ($hayArchivoNuevo) {
-            $carpetaDocumentos = __DIR__ . DIRECTORY_SEPARATOR . "documentos_subidos";
+            $carpetaDocumentos = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . "documentos_subidos";
 
             if (!is_dir($carpetaDocumentos) && !mkdir($carpetaDocumentos, 0775, true)) {
                 $mensajeError = "No se pudo preparar la carpeta para guardar el archivo.";
@@ -84,7 +84,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $actualizarDocumento->close();
 
                 if ($hayArchivoNuevo) {
-                    $rutaFisicaAnterior = __DIR__ . DIRECTORY_SEPARATOR . "documentos_subidos"
+                    $rutaFisicaAnterior = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . "documentos_subidos"
                         . DIRECTORY_SEPARATOR . basename($rutaArchivoActual);
 
                     if (is_file($rutaFisicaAnterior)) {
@@ -112,23 +112,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>PULSO - Actualizar documento</title>
-    <link rel="stylesheet" href="estilos.css">
-    <link rel="icon" type="image/png" href="recursos/logo-pulsoA.png">
+    <link rel="stylesheet" href="../../css/estilos.css">
+    <link rel="icon" type="image/png" href="../../recursos/logo-pulsoA.png">
   </head>
   <body>
     <header class="barra-superior">
-      <a class="marca" href="panel.html">
-        <img src="recursos/logo-pulsoA.png" alt="">
+      <a class="marca" href="../../panel.html">
+        <img src="../../recursos/logo-pulsoA.png" alt="">
         <span>PULSO</span>
       </a>
       <nav class="navegacion" aria-label="Páginas principales">
-        <a href="panel.html">Panel</a>
-        <a href="pacientes.php">Pacientes</a>
-        <a href="funcionario.php">Funcionarios</a>
-        <a class="enlace-activo" href="documentos.php">Documentos</a>
-        <a href="ambulancia.php">Ambulancias</a>
-        <a href="equipamientos.php">Equipamientos</a>
-        <a href="index.html">Inicio</a>
+        <a href="../../panel.html">Panel</a>
+        <a href="../pacientes/pacientes.php">Pacientes</a>
+        <a href="../funcionarios/funcionario.php">Funcionarios</a>
+        <a class="enlace-activo" href="../documentos/documentos.php">Documentos</a>
+        <a href="../ambulancias/ambulancia.php">Ambulancias</a>
+        <a href="../equipamientos/equipamientos.php">Equipamientos</a>
+        <a href="../../index.html">Inicio</a>
       </nav>
     </header>
 
@@ -143,19 +143,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
       <section class="tarjeta">
         <?php if ($mensajeError !== ""): ?>
-          <p class="estado estado-critico" role="alert"><?= llamar($mensajeError) ?></p>
+          <p class="estado estado-critico" role="alert"><?= escapar($mensajeError) ?></p>
         <?php endif; ?>
 
-        <form class="formulario" action="editar-documento.php?id=<?= llamar($idDocumento) ?>" method="post" enctype="multipart/form-data">
+        <form class="formulario" action="editar-documento.php?id=<?= escapar($idDocumento) ?>" method="post" enctype="multipart/form-data">
           <label for="titulo">
             Título del documento
-            <input id="titulo" type="text" name="titulo" value="<?= llamar($titulo) ?>" maxlength="200" required>
+            <input id="titulo" type="text" name="titulo" value="<?= escapar($titulo) ?>" maxlength="200" required>
           </label>
 
           <p>
             <strong>Archivo actual:</strong>
-            <a href="<?= llamar($rutaArchivoActual) ?>" target="_blank" rel="noopener">
-              <?= llamar(basename($rutaArchivoActual)) ?>
+            <a href="../../<?= escapar($rutaArchivoActual) ?>" target="_blank" rel="noopener">
+              <?= escapar(basename($rutaArchivoActual)) ?>
             </a>
           </p>
 
@@ -165,7 +165,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
           </label>
 
           <div class="acciones">
-            <a class="boton boton-secundario" href="documentos.php">Cancelar</a>
+            <a class="boton boton-secundario" href="../documentos/documentos.php">Cancelar</a>
             <button class="boton" type="submit">Guardar cambios</button>
           </div>
         </form>

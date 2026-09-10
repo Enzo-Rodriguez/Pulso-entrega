@@ -1,6 +1,6 @@
 <?php
 
-require_once "conexion.php";
+require_once "../conexion.php";
 
 $idFuncionario = filter_input(INPUT_GET, "id", FILTER_VALIDATE_INT);
 
@@ -97,24 +97,24 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PULSO - Editar funcionario</title>
-  <link rel="stylesheet" href="estilos.css">
-  <link rel="icon" type="image/png" href="recursos/logo-pulsoA.png">
+    <link rel="stylesheet" href="../../css/estilos.css">
+  <link rel="icon" type="image/png" href="../../recursos/logo-pulsoA.png">
 </head>
 
 <body>
   <header class="barra-superior">
-    <a class="marca" href="panel.html">
-      <img src="recursos/logo-pulsoA.png" alt="">
+    <a class="marca" href="../../panel.html">
+      <img src="../../recursos/logo-pulsoA.png" alt="">
       <span>PULSO</span>
     </a>
     <nav class="navegacion" aria-label="Páginas principales">
-      <a href="panel.html">Panel</a>
-      <a href="pacientes.php">Pacientes</a>
-      <a class="enlace-activo" href="funcionario.php">Funcionarios</a>
-      <a href="documentos.php">Documentos</a>
-      <a href="ambulancia.php">Ambulancias</a>
-      <a href="equipamientos.php">Equipamientos</a>
-      <a href="index.html">Inicio</a>
+      <a href="../../panel.html">Panel</a>
+      <a href="../pacientes/pacientes.php">Pacientes</a>
+      <a class="enlace-activo" href="../funcionarios/funcionario.php">Funcionarios</a>
+      <a href="../documentos/documentos.php">Documentos</a>
+      <a href="../ambulancias/ambulancia.php">Ambulancias</a>
+      <a href="../equipamientos/equipamientos.php">Equipamientos</a>
+      <a href="../../index.html">Inicio</a>
     </nav>
   </header>
 
@@ -191,7 +191,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         </label>
 
         <div class="acciones campo-completo">
-          <a class="boton boton-secundario" href="funcionario.php">Cancelar</a>
+          <a class="boton boton-secundario" href="../funcionarios/funcionario.php">Cancelar</a>
           <button class="boton" type="submit">Guardar cambios</button>
         </div>
       </form>

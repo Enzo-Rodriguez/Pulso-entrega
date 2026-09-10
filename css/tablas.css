@@ -1,0 +1,46 @@
+.cantidad-resultados {
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.contenedor-tabla {
+  overflow-x: auto;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+}
+
+.tabla {
+  width: 100%;
+  min-width: 850px;
+  border-collapse: collapse;
+}
+
+.tabla th,
+.tabla td {
+  padding: 14px;
+  border-bottom: 1px solid var(--borde);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.tabla th {
+  color: var(--texto-suave);
+  background: #edf3f6;
+  font-size: 13px;
+}
+
+.tabla tr:last-child td {
+  border-bottom: 0;
+}
+
+.tabla a {
+  color: var(--verde-oscuro);
+  font-weight: 800;
+}
+
+.tabla small {
+  display: block;
+  margin-top: 4px;
+  color: var(--texto-suave);
+}

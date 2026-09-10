@@ -1,11 +1,11 @@
 <?php
 
-require_once "conexion.php";
+require_once "../conexion.php";
 
 $mensajeError = "";
 $titulo = "";
 
-function llamar($contenido): string
+function escapar($contenido): string
 {
     return htmlspecialchars((string) ($contenido ?? ""), ENT_QUOTES, "UTF-8");
 }
@@ -29,7 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         if (!in_array($extension, $extensionesPermitidas, true)) {
             $mensajeError = "El formato del archivo no está permitido.";
         } else {
-            $carpetaDocumentos = __DIR__ . DIRECTORY_SEPARATOR . "documentos_subidos";
+            $carpetaDocumentos = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . "documentos_subidos";
 
             if (!is_dir($carpetaDocumentos) && !mkdir($carpetaDocumentos, 0775, true)) {
                 $mensajeError = "No se pudo preparar la carpeta para guardar el archivo.";
@@ -75,25 +75,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="estilos.css">
-    <link rel="icon" type="image/png" href="recursos/logo-pulsoA.png">
+    <link rel="stylesheet" href="../../css/estilos.css">
+    <link rel="icon" type="image/png" href="../../recursos/logo-pulsoA.png">
     <title>PULSO - Cargar Documento</title>
 </head>
 
 <body>
     <header class="barra-superior">
-        <a class="marca" href="panel.html">
-            <img src="recursos/logo-pulsoA.png" alt="">
+        <a class="marca" href="../../panel.html">
+            <img src="../../recursos/logo-pulsoA.png" alt="">
             <span>PULSO</span>
         </a>
         <nav class="navegacion" aria-label="Páginas principales">
-            <a href="panel.html">Panel</a>
-            <a href="pacientes.php">Pacientes</a>
-            <a href="funcionario.php">Funcionarios</a>
-            <a class="enlace-activo" href="documentos.php">Documentos</a>
-            <a href="ambulancia.php">Ambulancias</a>
-            <a href="equipamientos.php">Equipamientos</a>
-            <a href="index.html">Inicio</a>
+            <a href="../../panel.html">Panel</a>
+            <a href="../pacientes/pacientes.php">Pacientes</a>
+            <a href="../funcionarios/funcionario.php">Funcionarios</a>
+            <a class="enlace-activo" href="../documentos/documentos.php">Documentos</a>
+            <a href="../ambulancias/ambulancia.php">Ambulancias</a>
+            <a href="../equipamientos/equipamientos.php">Equipamientos</a>
+            <a href="../../index.html">Inicio</a>
         </nav>
     </header>
     <main class="pagina">
@@ -106,13 +106,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         </section>
         <section class="tarjeta">
             <?php if ($mensajeError !== ""): ?>
-                <p class="estado estado-critico" role="alert"><?= llamar($mensajeError) ?></p>
+                <p class="estado estado-critico" role="alert"><?= escapar($mensajeError) ?></p>
             <?php endif; ?>
 
             <form class="formulario" action="cargar-documento.php" method="post" enctype="multipart/form-data">
                 <label for="titulo">
                     Título del documento
-                    <input type="text" id="titulo" name="titulo" value="<?= llamar($titulo) ?>" maxlength="200" required>
+                    <input type="text" id="titulo" name="titulo" value="<?= escapar($titulo) ?>" maxlength="200" required>
                 </label>
 
                 <label for="documento">
@@ -121,7 +121,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 </label>
 
                 <div class="acciones">
-                    <a class="boton boton-secundario" href="documentos.php">Cancelar</a>
+                    <a class="boton boton-secundario" href="../documentos/documentos.php">Cancelar</a>
                     <button class="boton" type="submit">Cargar documento</button>
                 </div>
             </form>

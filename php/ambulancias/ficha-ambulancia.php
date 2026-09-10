@@ -1,6 +1,6 @@
 <?php
 
-require_once "conexion.php";
+require_once "../conexion.php";
 
 $matricula = trim($_GET["matricula"] ?? "");
 
@@ -45,23 +45,23 @@ $estadoVisible = (int) $ambulancia["activa"] === 1
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>PULSO - Ficha de ambulancia</title>
-    <link rel="stylesheet" href="estilos.css">
-    <link rel="icon" type="image/png" href="recursos/logo-pulsoA.png">
+    <link rel="stylesheet" href="../../css/estilos.css">
+    <link rel="icon" type="image/png" href="../../recursos/logo-pulsoA.png">
   </head>
   <body>
     <header class="barra-superior">
-      <a class="marca" href="panel.html">
-        <img src="recursos/logo-pulsoA.png" alt="">
+      <a class="marca" href="../../panel.html">
+        <img src="../../recursos/logo-pulsoA.png" alt="">
         <span>PULSO</span>
       </a>
       <nav class="navegacion" aria-label="Páginas principales">
-        <a href="panel.html">Panel</a>
-        <a href="pacientes.php">Pacientes</a>
-        <a href="funcionario.php">Funcionarios</a>
-        <a href="documentos.php">Documentos</a>
-        <a class="enlace-activo" href="ambulancia.php">Ambulancias</a>
-        <a href="equipamientos.php">Equipamientos</a>
-        <a href="index.html">Inicio</a>
+        <a href="../../panel.html">Panel</a>
+        <a href="../pacientes/pacientes.php">Pacientes</a>
+        <a href="../funcionarios/funcionario.php">Funcionarios</a>
+        <a href="../documentos/documentos.php">Documentos</a>
+        <a class="enlace-activo" href="../ambulancias/ambulancia.php">Ambulancias</a>
+        <a href="../equipamientos/equipamientos.php">Equipamientos</a>
+        <a href="../../index.html">Inicio</a>
       </nav>
     </header>
 
@@ -73,13 +73,13 @@ $estadoVisible = (int) $ambulancia["activa"] === 1
           <p>Información registrada en el sistema PULSO.</p>
         </div>
         <div class="acciones">
-          <a class="boton boton-secundario" href="ambulancia.php">Volver</a>
+          <a class="boton boton-secundario" href="../ambulancias/ambulancia.php">Volver</a>
           <a class="boton" href="editar-ambulancia.php?matricula=<?= urlencode($ambulancia["matricula"]) ?>">
             Editar ambulancia
           </a>
           <form action="eliminar_ambulancia.php" method="post" onsubmit="return confirm('¿Eliminar esta ambulancia?');">
             <input type="hidden" name="matricula" value="<?= escapar($ambulancia["matricula"]) ?>">
-            <button class="boton_rojo" type="submit">Eliminar ambulancia</button>
+            <button class="boton-rojo" type="submit">Eliminar ambulancia</button>
           </form>
         </div>
       </section>

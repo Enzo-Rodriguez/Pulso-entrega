@@ -1,6 +1,6 @@
 <?php
 
-require_once "conexion.php";
+require_once "../conexion.php";
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     http_response_code(405);
@@ -38,7 +38,7 @@ try {
     $eliminarDocumento->close();
 
     // basename impide que una ruta guardada pueda borrar archivos fuera de esta carpeta.
-    $rutaFisica = __DIR__ . DIRECTORY_SEPARATOR . "documentos_subidos"
+    $rutaFisica = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . "documentos_subidos"
         . DIRECTORY_SEPARATOR . basename($rutaArchivo);
 
     if (is_file($rutaFisica)) {
