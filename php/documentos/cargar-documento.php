@@ -1,5 +1,4 @@
 <?php
-
 require_once "../conexion.php";
 
 $mensajeError = "";
@@ -122,11 +121,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                 <div class="acciones">
                     <a class="boton boton-secundario" href="../documentos/documentos.php">Cancelar</a>
-                    <button class="boton" type="submit">Cargar documento</button>
+                    <button class="boton" type="submit" value="Subir">Cargar documento</button>
                 </div>
             </form>
         </section>
     </main>
+    <script src="cargar_doc.js"></script>
 </body>
 
 </html>
