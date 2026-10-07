@@ -123,6 +123,10 @@ CREATE TABLE IF NOT EXISTS traslado (
     descripcion_carga VARCHAR(255),
     origen VARCHAR(200) NOT NULL,
     destino VARCHAR(200) NOT NULL,
+    origen_latitud DECIMAL(10,7) NULL DEFAULT NULL,
+    origen_longitud DECIMAL(10,7) NULL DEFAULT NULL,
+    destino_latitud DECIMAL(10,7) NULL DEFAULT NULL,
+    destino_longitud DECIMAL(10,7) NULL DEFAULT NULL,
     salida_prevista DATETIME NOT NULL,
     salida_real DATETIME,
     llegada_real DATETIME,
@@ -135,6 +139,21 @@ CREATE TABLE IF NOT EXISTS traslado (
     FOREIGN KEY (id_tipo_carga) REFERENCES tipo_carga(id_tipo_carga),
     FOREIGN KEY (id_tipo_prioridad) REFERENCES tipo_prioridad(id_tipo_prioridad),
     FOREIGN KEY (id_estado_traslado) REFERENCES estado_traslado(id_estado_traslado)
+) ENGINE=InnoDB;
+
+-- Cada registro conserva un punto recibido durante un traslado.
+CREATE TABLE IF NOT EXISTS ubicacion_traslado (
+    id_ubicacion INT AUTO_INCREMENT,
+    id_traslado INT NOT NULL,
+    id_conductor INT NOT NULL,
+    latitud DECIMAL(10,7) NOT NULL,
+    longitud DECIMAL(10,7) NOT NULL,
+    precision_metros DECIMAL(10,2) NOT NULL,
+    fecha_registro DATETIME NOT NULL,
+    PRIMARY KEY (id_ubicacion),
+    INDEX idx_ubicacion_traslado (id_traslado, id_ubicacion),
+    FOREIGN KEY (id_traslado) REFERENCES traslado(id_traslado),
+    FOREIGN KEY (id_conductor) REFERENCES funcionario(id_funcionario)
 ) ENGINE=InnoDB;
 
 -- Valores iniciales de los catálogos.

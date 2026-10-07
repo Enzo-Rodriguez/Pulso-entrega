@@ -66,6 +66,7 @@ $estados = $resultadoEstados->fetch_all(MYSQLI_ASSOC);
         <a href="../documentos/documentos.php">Documentos</a>
         <a class="enlace-activo" href="../ambulancias/ambulancia.php">Ambulancias</a>
         <a href="../equipamientos/equipamientos.php">Equipamientos</a>
+        <a href="../traslados/traslados.html">Traslados</a>
         <a href="../../index.html">Inicio</a>
       </nav>
     </header>

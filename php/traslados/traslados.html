@@ -1,0 +1,965 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PULSO - Traslados</title>
+    <link rel="stylesheet" href="../../css/estilos.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+    <link rel="stylesheet" href="../../css/traslados.css">
+    <link rel="icon" type="image/png" href="../../recursos/logo-pulsoA.png">
+  </head>
+  <body>
+    <header class="barra-superior">
+      <a class="marca" href="../../panel.html">
+        <img src="../../recursos/logo-pulsoA.png" alt="">
+        <span>PULSO</span>
+      </a>
+      <nav class="navegacion" aria-label="Páginas principales">
+        <a href="../../panel.html">Panel</a>
+        <a href="../pacientes/pacientes.php">Pacientes</a>
+        <a href="../funcionarios/funcionario.php">Funcionarios</a>
+        <a href="../documentos/documentos.php">Documentos</a>
+        <a href="../ambulancias/ambulancia.php">Ambulancias</a>
+        <a href="../equipamientos/equipamientos.php">Equipamientos</a>
+        <a class="enlace-activo" href="traslados.html" aria-current="page">Traslados</a>
+        <a href="../../index.html">Inicio</a>
+      </nav>
+    </header>
+
+    <main class="pagina pagina-traslados">
+      <section class="encabezado-pagina">
+        <div>
+          <p class="subtitulo">Gestión de recorridos</p>
+          <h1>Traslados</h1>
+          <p>Información de cada traslado y su mapa en una sola ficha.</p>
+        </div>
+        <div class="acciones">
+          <a class="boton boton-secundario" href="chofer.html">Vista del chofer</a>
+          <button class="boton" id="botonNuevoTraslado" type="button" disabled>Nuevo traslado</button>
+        </div>
+      </section>
+
+      <p id="mensajeTraslados" class="mensaje-traslados" role="status" hidden></p>
+
+      <section id="seccionFormulario" class="tarjeta formulario-traslado" aria-labelledby="tituloFormulario" hidden>
+        <h2 id="tituloFormulario">Nuevo traslado</h2>
+        <p>Completá los datos del recorrido y del equipo asignado.</p>
+
+        <form id="formularioTraslado" class="formulario formulario-dos-columnas">
+          <input id="id_traslado" name="id_traslado" type="hidden">
+          <input name="origen_latitud" type="hidden">
+          <input name="origen_longitud" type="hidden">
+          <input name="destino_latitud" type="hidden">
+          <input name="destino_longitud" type="hidden">
+
+          <div class="campo-direccion">
+            <label for="origen">
+              Origen
+              <input id="origen" name="origen" type="text" maxlength="200" placeholder="Dirección y localidad" required>
+            </label>
+            <button class="boton boton-secundario" data-buscar-punto="origen" type="button">Buscar</button>
+            <p id="mensajeBusquedaOrigen" class="mensaje-busqueda" role="status" hidden></p>
+            <ul id="resultadosOrigen" class="resultados-ubicacion" aria-label="Resultados para el origen" hidden></ul>
+          </div>
+
+          <div class="campo-direccion">
+            <label for="destino">
+              Destino
+              <input id="destino" name="destino" type="text" maxlength="200" placeholder="Dirección y localidad" required>
+            </label>
+            <button class="boton boton-secundario" data-buscar-punto="destino" type="button">Buscar</button>
+            <p id="mensajeBusquedaDestino" class="mensaje-busqueda" role="status" hidden></p>
+            <ul id="resultadosDestino" class="resultados-ubicacion" aria-label="Resultados para el destino" hidden></ul>
+          </div>
+
+          <fieldset class="campo-completo seleccion-ubicaciones">
+            <legend>Ubicaciones del traslado</legend>
+            <div class="acciones ubicaciones-acciones">
+              <button class="boton boton-secundario boton-accion" id="botonMarcarOrigen" data-punto="origen" type="button" aria-pressed="true">Marcar origen</button>
+              <button class="boton boton-secundario boton-accion" id="botonMarcarDestino" data-punto="destino" type="button" aria-pressed="false">Marcar destino</button>
+              <button class="boton boton-accion" id="botonCalcularRuta" type="button" disabled>Calcular recorrido</button>
+            </div>
+            <p id="instruccionMapa" class="instruccion-mapa" role="status">Buscá las direcciones y elegí sus resultados para ubicar los puntos.</p>
+            <div id="mapaFormulario" class="mapa-formulario" aria-label="Mapa para elegir el origen y el destino"></div>
+            <p id="mensajeRuta" class="instruccion-mapa" role="status">Elegí los dos puntos para calcular el recorrido.</p>
+            <dl id="resumenRuta" class="resumen-ruta" hidden>
+              <div><dt>Distancia</dt><dd id="distanciaRuta"></dd></div>
+              <div><dt>Tiempo estimado</dt><dd id="duracionRuta"></dd></div>
+              <div><dt>Llegada estimada</dt><dd id="llegadaRuta"></dd></div>
+            </dl>
+            <p class="mapa-nota">Direcciones obtenidas con <a href="https://www.geoapify.com/" target="_blank" rel="noopener noreferrer">Geoapify</a>. Podés ajustar los marcadores o marcar los puntos manualmente. Si cambiás una dirección, volvé a buscar o marcar su ubicación.</p>
+            <p class="mapa-nota">Recorrido calculado con OSRM. El tiempo es orientativo y no incluye las demoras propias del traslado.</p>
+          </fieldset>
+
+          <label for="id_tipo_carga">
+            Tipo de carga
+            <select id="id_tipo_carga" name="id_tipo_carga" required></select>
+          </label>
+
+          <label for="id_paciente">
+            Paciente
+            <select id="id_paciente" name="id_paciente"></select>
+          </label>
+
+          <label for="matricula">
+            Ambulancia
+            <select id="matricula" name="matricula" required></select>
+          </label>
+
+          <label for="id_conductor">
+            Conductor
+            <select id="id_conductor" name="id_conductor" required></select>
+          </label>
+
+          <label for="id_acompanante">
+            Acompañante
+            <select id="id_acompanante" name="id_acompanante"></select>
+          </label>
+
+          <label for="id_creador">
+            Registrado por
+            <select id="id_creador" name="id_creador" required></select>
+          </label>
+
+          <label for="id_tipo_prioridad">
+            Prioridad
+            <select id="id_tipo_prioridad" name="id_tipo_prioridad" required></select>
+          </label>
+
+          <label for="salida_prevista">
+            Salida prevista
+            <input id="salida_prevista" name="salida_prevista" type="datetime-local" required>
+          </label>
+
+          <label class="campo-completo" for="descripcion_carga">
+            Descripción de la carga (opcional)
+            <textarea id="descripcion_carga" name="descripcion_carga" maxlength="255"></textarea>
+          </label>
+
+          <div class="acciones campo-completo">
+            <button class="boton boton-secundario" id="botonCancelarFormulario" type="button">Cerrar</button>
+            <button class="boton" id="botonGuardarTraslado" type="submit">Guardar traslado</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="fichas-traslados" aria-label="Fichas de traslados">
+        <p class="cantidad-resultados" id="cantidadTraslados">Cargando traslados...</p>
+        <div id="listaTraslados" class="lista-traslados"></div>
+      </section>
+    </main>
+
+    <template id="plantillaFicha">
+      <article class="ficha-traslado">
+        <header class="ficha-traslado-cabecera">
+          <div>
+            <p class="ficha-traslado-etiqueta" data-campo="etiqueta"></p>
+            <h2 data-campo="titulo"></h2>
+          </div>
+          <div class="ficha-traslado-insignias">
+            <span class="estado" data-campo="prioridad"></span>
+            <span class="estado" data-campo="estado"></span>
+          </div>
+        </header>
+
+        <div class="ficha-traslado-cuerpo">
+          <div class="ficha-traslado-informacion">
+            <div class="recorrido-traslado" aria-label="Origen y destino">
+              <div class="recorrido-punto recorrido-origen">
+                <span class="recorrido-marca" aria-hidden="true"></span>
+                <div>
+                  <span class="recorrido-titulo">Origen</span>
+                  <strong data-campo="origen"></strong>
+                </div>
+              </div>
+              <div class="recorrido-punto recorrido-destino">
+                <span class="recorrido-marca" aria-hidden="true"></span>
+                <div>
+                  <span class="recorrido-titulo">Destino</span>
+                  <strong data-campo="destino"></strong>
+                </div>
+              </div>
+            </div>
+
+            <dl class="datos-traslado">
+              <div><dt>Tipo de carga</dt><dd data-campo="tipo_carga"></dd></div>
+              <div><dt>Paciente</dt><dd data-campo="nombre_paciente"></dd></div>
+              <div><dt>Ambulancia</dt><dd data-campo="matricula"></dd></div>
+              <div><dt>Conductor</dt><dd data-campo="nombre_conductor"></dd></div>
+              <div><dt>Acompañante</dt><dd data-campo="nombre_acompanante"></dd></div>
+              <div><dt>Registrado por</dt><dd data-campo="nombre_creador"></dd></div>
+              <div><dt>Salida prevista</dt><dd data-campo="salida_prevista"></dd></div>
+              <div><dt>Salida real</dt><dd data-campo="salida_real"></dd></div>
+              <div><dt>Llegada real</dt><dd data-campo="llegada_real"></dd></div>
+              <div><dt>Distancia</dt><dd data-campo="distancia"></dd></div>
+              <div><dt>Tiempo estimado</dt><dd data-campo="duracion"></dd></div>
+              <div><dt>Llegada estimada</dt><dd data-campo="llegada_estimada"></dd></div>
+            </dl>
+
+            <div class="descripcion-traslado">
+              <span>Descripción</span>
+              <p data-campo="descripcion_carga"></p>
+            </div>
+
+            <div class="acciones acciones-traslado">
+              <button class="boton boton-secundario boton-accion" data-accion="editar" type="button">Actualizar</button>
+              <button class="boton boton-accion" data-accion="avanzar" type="button"></button>
+              <button class="boton-rojo boton-accion" data-accion="cancelar" type="button">Dar de baja</button>
+            </div>
+          </div>
+
+          <div class="ficha-traslado-mapa">
+            <div class="mapa-cabecera">
+              <strong>Mapa del traslado</strong>
+              <span>OpenStreetMap</span>
+            </div>
+            <div class="mapa-superficie">
+              <div class="mapa-traslado" aria-label="Mapa interactivo de Montevideo"></div>
+              <p class="mapa-aviso" hidden>Este traslado todavía no tiene sus ubicaciones marcadas.</p>
+            </div>
+            <p class="mapa-nota"></p>
+            <p class="mapa-nota seguimiento-nota" data-campo="gps">Sin ubicación GPS registrada.</p>
+            <button class="boton boton-secundario boton-accion" data-accion="calcular-ruta" type="button" hidden>Calcular recorrido</button>
+          </div>
+        </div>
+      </article>
+    </template>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+      const formulario = document.getElementById("formularioTraslado");
+      const seccionFormulario = document.getElementById("seccionFormulario");
+      const listaTraslados = document.getElementById("listaTraslados");
+      const mensajeTraslados = document.getElementById("mensajeTraslados");
+      let traslados = [];
+      let opciones = {};
+      let mapaFormulario = null;
+      let puntoActivo = "origen";
+      let marcadoresFormulario = { origen: null, destino: null };
+      let mapasFichas = [];
+      const mapasSeguimiento = new Map();
+      const fichasPorId = new Map();
+      let consultandoSeguimiento = false;
+      let versionFichas = 0;
+      let busquedasUbicacion = { origen: null, destino: null };
+      let rutaFormulario = null;
+      let capaRutaFormulario = null;
+      let consultaRuta = null;
+      const rutasCalculadas = new Map();
+      let ultimoCalculoRuta = 0;
+      let salidaRealFormulario = null;
+
+      const clasesPorEstado = {
+        "Programado": "estado-observacion",
+        "En curso": "estado-alta",
+        "Finalizado": "estado-estable",
+        "Cancelado": "estado-inactivo"
+      };
+      const clasesPorPrioridad = {
+        "Baja": "estado-estable",
+        "Media": "estado-observacion",
+        "Alta": "estado-alta",
+        "Urgente": "estado-critico"
+      };
+
+      function mostrarMensaje(texto, esError = false) {
+        mensajeTraslados.textContent = texto;
+        mensajeTraslados.className = "mensaje-traslados estado " + (esError ? "estado-critico" : "estado-estable");
+        mensajeTraslados.hidden = false;
+      }
+
+      function llenarOpciones(nombreCampo, datos, valor, etiqueta, textoInicial) {
+        const seleccion = formulario.elements[nombreCampo];
+        seleccion.replaceChildren(new Option(textoInicial, ""));
+        datos.forEach(function (dato) {
+          seleccion.add(new Option(etiqueta(dato), dato[valor]));
+        });
+      }
+
+      function cargarOpciones() {
+        llenarOpciones("id_tipo_carga", opciones.tipos_carga, "id_tipo_carga", dato => dato.nombre, "Seleccionar tipo");
+        llenarOpciones("id_tipo_prioridad", opciones.prioridades, "id_tipo_prioridad", dato => dato.nombre, "Seleccionar prioridad");
+        llenarOpciones("id_paciente", opciones.pacientes, "id_paciente", dato => dato.nombre, "Sin paciente");
+        llenarOpciones("matricula", opciones.ambulancias, "matricula", dato => dato.matricula + " · " + dato.marca + " " + dato.modelo, "Seleccionar ambulancia");
+        llenarOpciones("id_creador", opciones.funcionarios, "id_funcionario", dato => dato.nombre, "Seleccionar funcionario");
+        llenarOpciones("id_conductor", opciones.funcionarios.filter(dato => dato.tipo === "Conductor"), "id_funcionario", dato => dato.nombre, "Seleccionar conductor");
+        llenarOpciones("id_acompanante", opciones.funcionarios, "id_funcionario", dato => dato.nombre, "Sin acompañante");
+      }
+
+      function actualizarCampoPaciente() {
+        const tipoElegido = opciones.tipos_carga.find(dato => dato.id_tipo_carga == formulario.elements.id_tipo_carga.value);
+        const esPaciente = tipoElegido?.nombre === "Paciente";
+        formulario.elements.id_paciente.disabled = !esPaciente;
+        formulario.elements.id_paciente.required = esPaciente;
+        if (!esPaciente) formulario.elements.id_paciente.value = "";
+      }
+
+      function abrirFormulario(traslado = null) {
+        formulario.reset();
+        salidaRealFormulario = traslado?.salida_real ? traslado.salida_calculo : null;
+        formulario.elements.id_traslado.value = traslado?.id_traslado ?? "";
+        formulario.elements.id_creador.disabled = Boolean(traslado);
+        document.getElementById("tituloFormulario").textContent = traslado ? "Actualizar traslado n.º " + traslado.id_traslado : "Nuevo traslado";
+        document.getElementById("botonGuardarTraslado").textContent = traslado ? "Guardar cambios" : "Registrar traslado";
+
+        if (traslado) {
+          ["origen", "destino", "descripcion_carga", "matricula", "id_tipo_carga", "id_paciente",
+            "id_creador", "id_conductor", "id_acompanante", "id_tipo_prioridad"].forEach(function (campo) {
+            formulario.elements[campo].value = traslado[campo] ?? "";
+          });
+          formulario.elements.salida_prevista.value = traslado.salida_prevista_formulario;
+        }
+
+        actualizarCampoPaciente();
+        seccionFormulario.hidden = false;
+        prepararMapaFormulario(traslado);
+        seccionFormulario.scrollIntoView({ behavior: "smooth", block: "start" });
+        formulario.elements.origen.focus({ preventScroll: true });
+      }
+
+      function cerrarFormulario() {
+        seccionFormulario.hidden = true;
+        formulario.reset();
+        salidaRealFormulario = null;
+        limpiarPuntosFormulario();
+      }
+
+      function ponerTexto(ficha, campo, valor) {
+        ficha.querySelector('[data-campo="' + campo + '"]').textContent = valor;
+      }
+
+      function elementosBusqueda(punto) {
+        const nombre = punto === "origen" ? "Origen" : "Destino";
+        return {
+          boton: document.querySelector('[data-buscar-punto="' + punto + '"]'),
+          mensaje: document.getElementById("mensajeBusqueda" + nombre),
+          resultados: document.getElementById("resultados" + nombre)
+        };
+      }
+
+      function mostrarMensajeBusqueda(punto, texto, esError = false) {
+        const mensaje = elementosBusqueda(punto).mensaje;
+        mensaje.textContent = texto;
+        mensaje.classList.toggle("mensaje-busqueda-error", esError);
+        mensaje.hidden = false;
+      }
+
+      function cancelarBusqueda(punto) {
+        busquedasUbicacion[punto]?.abort();
+        busquedasUbicacion[punto] = null;
+        const elementos = elementosBusqueda(punto);
+        elementos.boton.disabled = false;
+        elementos.boton.textContent = "Buscar";
+        elementos.mensaje.hidden = true;
+        elementos.resultados.replaceChildren();
+        elementos.resultados.hidden = true;
+      }
+
+      async function buscarUbicacion(punto) {
+        cancelarBusqueda(punto);
+        actualizarInstruccionMapa();
+        const direccion = formulario.elements[punto].value.trim();
+        if (direccion.length < 3) {
+          mostrarMensajeBusqueda(punto, "Escribí una dirección y su localidad antes de buscar.", true);
+          return;
+        }
+        if (typeof L === "undefined") {
+          mostrarMensajeBusqueda(punto, "No se pudo cargar el mapa. Revisá la conexión y recargá la página.", true);
+          return;
+        }
+
+        const controlador = new AbortController();
+        busquedasUbicacion[punto] = controlador;
+        const elementos = elementosBusqueda(punto);
+        elementos.boton.disabled = true;
+        elementos.boton.textContent = "Buscando...";
+        mostrarMensajeBusqueda(punto, "Buscando la dirección...");
+        const datos = new FormData();
+        datos.set("accion", "buscar_ubicacion");
+        datos.set("direccion", direccion);
+
+        try {
+          const respuesta = await fetch("traslados.php", { method: "POST", body: datos, signal: controlador.signal });
+          const resultado = await respuesta.json();
+          if (!respuesta.ok) throw new Error(resultado.error || "No se pudo buscar la dirección.");
+          // Una respuesta anterior no debe reemplazar una dirección recién cambiada.
+          if (busquedasUbicacion[punto] !== controlador || seccionFormulario.hidden || formulario.elements[punto].value.trim() !== direccion) return;
+          if (!Array.isArray(resultado.resultados)) throw new Error("La búsqueda devolvió una respuesta no válida.");
+          if (resultado.resultados.length === 0) {
+            mostrarMensajeBusqueda(punto, "No se encontraron ubicaciones. Probá agregando calle, número y localidad.");
+            return;
+          }
+
+          resultado.resultados.forEach(function (ubicacion) {
+            const item = document.createElement("li");
+            const boton = document.createElement("button");
+            boton.type = "button";
+            boton.textContent = ubicacion.direccion;
+            boton.addEventListener("click", function () {
+              if (ubicacion.direccion.length > formulario.elements[punto].maxLength) {
+                mostrarMensajeBusqueda(punto, "La dirección encontrada es demasiado larga. Buscá una dirección más corta o marcá el punto manualmente.", true);
+                return;
+              }
+              formulario.elements[punto].value = ubicacion.direccion;
+              marcarPuntoFormulario(punto, [ubicacion.latitud, ubicacion.longitud]);
+              const puntos = Object.values(marcadoresFormulario).filter(Boolean).map(marcador => marcador.getLatLng());
+              mapaFormulario.fitBounds(puntos, { padding: [45, 45], maxZoom: 16 });
+              mostrarMensajeBusqueda(punto, "Ubicación seleccionada. Podés ajustar el marcador en el mapa.");
+            });
+            item.append(boton);
+            elementos.resultados.append(item);
+          });
+          elementos.resultados.hidden = false;
+          mostrarMensajeBusqueda(punto, "Elegí la ubicación correcta de la lista.");
+        } catch (error) {
+          if (error.name !== "AbortError" && busquedasUbicacion[punto] === controlador) {
+            mostrarMensajeBusqueda(punto, error.message, true);
+          }
+        } finally {
+          if (busquedasUbicacion[punto] === controlador) {
+            busquedasUbicacion[punto] = null;
+            elementos.boton.disabled = false;
+            elementos.boton.textContent = "Buscar";
+          }
+        }
+      }
+
+      function crearIconoUbicacion(punto) {
+        return L.divIcon({
+          className: "marcador-ubicacion marcador-" + punto,
+          html: punto === "origen" ? "O" : "D",
+          iconSize: [32, 32],
+          iconAnchor: [16, 16]
+        });
+      }
+
+      function rutaDelTraslado(traslado) {
+        const ruta = traslado.ruta;
+        if (ruta?.type !== "LineString" || !Array.isArray(ruta.coordinates) || ruta.coordinates.length < 2) return null;
+        const valida = ruta.coordinates.every(punto => Array.isArray(punto) && punto.length >= 2 &&
+          Number.isFinite(punto[0]) && Number.isFinite(punto[1]) && Math.abs(punto[0]) <= 180 && Math.abs(punto[1]) <= 90);
+        return valida ? ruta : null;
+      }
+
+      function formatearDistancia(metros) {
+        if (metros == null || metros === "" || !Number.isFinite(Number(metros)) || Number(metros) < 0) return "Pendiente de cálculo";
+        return (Number(metros) / 1000).toLocaleString("es-UY", { maximumFractionDigits: 2 }) + " km";
+      }
+
+      function formatearDuracion(segundos) {
+        if (segundos == null || segundos === "" || !Number.isFinite(Number(segundos)) || Number(segundos) < 0) return "Pendiente de cálculo";
+        const minutos = Math.ceil(Number(segundos) / 60);
+        const horas = Math.floor(minutos / 60);
+        return horas ? horas + " h " + (minutos % 60) + " min" : minutos + " min";
+      }
+
+      function formatearLlegada(fechaSalida, segundos) {
+        const fecha = new Date(fechaSalida);
+        if (segundos == null || !Number.isFinite(Number(segundos)) || Number.isNaN(fecha.getTime())) return "Pendiente de cálculo";
+        // Usa los mismos minutos redondeados que se muestran en el tiempo estimado.
+        return new Date(fecha.getTime() + Math.ceil(Number(segundos) / 60) * 60000).toLocaleString("es-UY", { dateStyle: "short", timeStyle: "short" });
+      }
+
+      function claveUbicaciones(traslado) {
+        const origen = coordenadasDeTraslado(traslado, "origen");
+        const destino = coordenadasDeTraslado(traslado, "destino");
+        return origen && destino ? [...origen, ...destino].map(valor => valor.toFixed(7)).join(",") : null;
+      }
+
+      // Los recorridos solo se mantienen mientras esta página está abierta.
+      async function solicitarRuta(datos, controlador = null) {
+        if (Date.now() - ultimoCalculoRuta < 1100) throw new Error("Esperá un segundo antes de calcular otro recorrido.");
+        ultimoCalculoRuta = Date.now();
+        const respuesta = await fetch("traslados.php", { method: "POST", body: datos, signal: controlador?.signal });
+        const resultado = await respuesta.json();
+        if (!respuesta.ok) throw new Error(resultado.error || "No se pudo calcular el recorrido.");
+        if (!rutaDelTraslado(resultado)) throw new Error("No se recibió un recorrido válido.");
+        return resultado;
+      }
+
+      async function calcularRutaFicha(traslado, boton) {
+        if (rutasCalculadas.has(claveUbicaciones(traslado))) {
+          mostrarFichas();
+          return;
+        }
+        boton.disabled = true;
+        boton.textContent = "Calculando...";
+        const datos = new FormData();
+        datos.set("accion", "calcular_ruta");
+        ["origen_latitud", "origen_longitud", "destino_latitud", "destino_longitud"].forEach(campo => datos.set(campo, traslado[campo]));
+        try {
+          const resultado = await solicitarRuta(datos);
+          rutasCalculadas.set(claveUbicaciones(traslado), resultado);
+          mostrarFichas();
+        } catch (error) {
+          mostrarMensaje(error.message, true);
+        } finally {
+          boton.disabled = false;
+          boton.textContent = "Calcular recorrido";
+        }
+      }
+
+      function actualizarLlegadaFormulario() {
+        const salida = salidaRealFormulario || formulario.elements.salida_prevista.value;
+        document.getElementById("llegadaRuta").textContent = rutaFormulario && salida
+          ? formatearLlegada(salida, rutaFormulario.duracion_segundos)
+          : "Completá la salida prevista";
+      }
+
+      function actualizarBotonRuta() {
+        document.getElementById("botonCalcularRuta").disabled = Boolean(consultaRuta) || !marcadoresFormulario.origen || !marcadoresFormulario.destino;
+      }
+
+      function limpiarRutaFormulario() {
+        consultaRuta?.abort();
+        consultaRuta = null;
+        if (capaRutaFormulario) mapaFormulario.removeLayer(capaRutaFormulario);
+        capaRutaFormulario = null;
+        rutaFormulario = null;
+        document.getElementById("resumenRuta").hidden = true;
+        document.getElementById("mensajeRuta").textContent = "Si cambiás los puntos, volvé a calcular el recorrido.";
+        document.getElementById("botonCalcularRuta").textContent = "Calcular recorrido";
+        actualizarBotonRuta();
+      }
+
+      function mostrarRutaFormulario(datos) {
+        const ruta = rutaDelTraslado(datos);
+        if (!ruta) throw new Error("No se recibió un recorrido válido.");
+        if (capaRutaFormulario) mapaFormulario.removeLayer(capaRutaFormulario);
+        capaRutaFormulario = L.geoJSON(ruta, { style: { color: "#087e8b", weight: 5, opacity: 0.85 } }).addTo(mapaFormulario);
+        rutaFormulario = datos;
+        const ubicaciones = Object.fromEntries(["origen_latitud", "origen_longitud", "destino_latitud", "destino_longitud"].map(campo => [campo, formulario.elements[campo].value]));
+        rutasCalculadas.set(claveUbicaciones(ubicaciones), datos);
+        document.getElementById("distanciaRuta").textContent = formatearDistancia(datos.distancia_metros);
+        document.getElementById("duracionRuta").textContent = formatearDuracion(datos.duracion_segundos);
+        document.getElementById("resumenRuta").hidden = false;
+        document.getElementById("mensajeRuta").textContent = "Recorrido calculado con OSRM.";
+        actualizarLlegadaFormulario();
+        const limites = capaRutaFormulario.getBounds();
+        Object.values(marcadoresFormulario).filter(Boolean).forEach(marcador => limites.extend(marcador.getLatLng()));
+        mapaFormulario.fitBounds(limites, { padding: [45, 45], maxZoom: 16 });
+      }
+
+      async function calcularRutaFormulario() {
+        if (!marcadoresFormulario.origen || !marcadoresFormulario.destino) return;
+        consultaRuta?.abort();
+        const controlador = new AbortController();
+        consultaRuta = controlador;
+        actualizarBotonRuta();
+        document.getElementById("botonCalcularRuta").textContent = "Calculando...";
+        document.getElementById("mensajeRuta").textContent = "Calculando el recorrido por las calles...";
+        const datos = new FormData();
+        datos.set("accion", "calcular_ruta");
+        ["origen_latitud", "origen_longitud", "destino_latitud", "destino_longitud"].forEach(campo => datos.set(campo, formulario.elements[campo].value));
+        try {
+          const resultado = await solicitarRuta(datos, controlador);
+          if (consultaRuta !== controlador || seccionFormulario.hidden) return;
+          mostrarRutaFormulario(resultado);
+        } catch (error) {
+          if (error.name !== "AbortError" && consultaRuta === controlador) document.getElementById("mensajeRuta").textContent = error.message;
+        } finally {
+          if (consultaRuta === controlador) {
+            consultaRuta = null;
+            document.getElementById("botonCalcularRuta").textContent = "Calcular recorrido";
+            actualizarBotonRuta();
+          }
+        }
+      }
+
+      function coordenadasDeTraslado(traslado, punto) {
+        const latitud = traslado[punto + "_latitud"];
+        const longitud = traslado[punto + "_longitud"];
+        if (latitud == null || longitud == null || latitud === "" || longitud === "") return null;
+        const valores = [Number(latitud), Number(longitud)];
+        if (!valores.every(Number.isFinite) || Math.abs(valores[0]) > 90 || Math.abs(valores[1]) > 180) return null;
+        return valores;
+      }
+
+      function actualizarInstruccionMapa() {
+        const ambosMarcados = marcadoresFormulario.origen && marcadoresFormulario.destino;
+        document.getElementById("instruccionMapa").textContent = ambosMarcados
+          ? "Origen y destino marcados. Podés mover los marcadores para ajustar sus ubicaciones."
+          : "Buscá las direcciones y elegí sus resultados. También podés marcar el " + puntoActivo + " en el mapa.";
+      }
+
+      function elegirPuntoActivo(punto) {
+        puntoActivo = punto;
+        document.querySelectorAll("[data-punto]").forEach(function (boton) {
+          const seleccionado = boton.dataset.punto === punto;
+          boton.setAttribute("aria-pressed", String(seleccionado));
+          boton.classList.toggle("boton-punto-activo", seleccionado);
+        });
+        actualizarInstruccionMapa();
+      }
+
+      function guardarCoordenadasEnFormulario(punto, ubicacion) {
+        const normalizada = ubicacion.wrap();
+        const latitud = normalizada.lat.toFixed(7);
+        const longitud = normalizada.lng.toFixed(7);
+        if (formulario.elements[punto + "_latitud"].value !== latitud || formulario.elements[punto + "_longitud"].value !== longitud) limpiarRutaFormulario();
+        formulario.elements[punto + "_latitud"].value = latitud;
+        formulario.elements[punto + "_longitud"].value = longitud;
+        actualizarBotonRuta();
+      }
+
+      function marcarPuntoFormulario(punto, ubicacion) {
+        cancelarBusqueda(punto);
+        ubicacion = L.latLng(ubicacion).wrap();
+        if (marcadoresFormulario[punto]) {
+          marcadoresFormulario[punto].setLatLng(ubicacion);
+        } else {
+          const marcador = L.marker(ubicacion, {
+            icon: crearIconoUbicacion(punto),
+            draggable: true,
+            title: punto === "origen" ? "Origen del traslado" : "Destino del traslado"
+          }).addTo(mapaFormulario);
+          marcador.bindTooltip(punto === "origen" ? "Origen" : "Destino");
+          marcador.on("dragend", function () {
+            marcador.setLatLng(marcador.getLatLng().wrap());
+            guardarCoordenadasEnFormulario(punto, marcador.getLatLng());
+          });
+          marcadoresFormulario[punto] = marcador;
+        }
+        guardarCoordenadasEnFormulario(punto, marcadoresFormulario[punto].getLatLng());
+        actualizarInstruccionMapa();
+      }
+
+      function limpiarPuntoFormulario(punto) {
+        cancelarBusqueda(punto);
+        if (marcadoresFormulario[punto]) mapaFormulario.removeLayer(marcadoresFormulario[punto]);
+        marcadoresFormulario[punto] = null;
+        formulario.elements[punto + "_latitud"].value = "";
+        formulario.elements[punto + "_longitud"].value = "";
+        limpiarRutaFormulario();
+      }
+
+      function limpiarPuntosFormulario() {
+        limpiarPuntoFormulario("origen");
+        limpiarPuntoFormulario("destino");
+      }
+
+      function agregarFondoMapa(mapa) {
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(mapa);
+      }
+
+      function prepararMapaFormulario(traslado) {
+        limpiarPuntosFormulario();
+        if (typeof L === "undefined") {
+          mostrarMensaje("No se pudo cargar el mapa. Revisá la conexión y recargá la página.", true);
+          return;
+        }
+        if (!mapaFormulario) {
+          mapaFormulario = L.map("mapaFormulario", { scrollWheelZoom: false, worldCopyJump: true });
+          agregarFondoMapa(mapaFormulario);
+          mapaFormulario.on("click", function (evento) {
+            marcarPuntoFormulario(puntoActivo, evento.latlng);
+            if (puntoActivo === "origen" && !marcadoresFormulario.destino) elegirPuntoActivo("destino");
+          });
+        }
+        mapaFormulario.setView([-34.902, -56.177], 12);
+        const puntos = [];
+        if (traslado) {
+          ["origen", "destino"].forEach(function (punto) {
+            const coordenadas = coordenadasDeTraslado(traslado, punto);
+            if (coordenadas) {
+              marcarPuntoFormulario(punto, L.latLng(coordenadas));
+              puntos.push(coordenadas);
+            }
+          });
+        }
+        elegirPuntoActivo(marcadoresFormulario.origen && !marcadoresFormulario.destino ? "destino" : "origen");
+        requestAnimationFrame(function () {
+          mapaFormulario.invalidateSize();
+          if (traslado && rutaDelTraslado(traslado)) mostrarRutaFormulario(traslado);
+          else if (puntos.length) mapaFormulario.fitBounds(puntos, { padding: [45, 45], maxZoom: 16 });
+        });
+      }
+
+      function iniciarMapa(contenedor, traslado) {
+        if (typeof L === "undefined") {
+          contenedor.textContent = "No se pudo cargar el mapa.";
+          return;
+        }
+
+        const mapa = L.map(contenedor, { scrollWheelZoom: false }).setView([-34.902, -56.177], 12);
+        agregarFondoMapa(mapa);
+        mapasFichas.push(mapa);
+        if (traslado.id_traslado) mapasSeguimiento.set(String(traslado.id_traslado), { mapa, marcador: null });
+        const puntos = [];
+        ["origen", "destino"].forEach(function (punto) {
+          const coordenadas = coordenadasDeTraslado(traslado, punto);
+          if (!coordenadas) return;
+          const texto = document.createElement("span");
+          texto.textContent = (punto === "origen" ? "Origen: " : "Destino: ") + traslado[punto];
+          L.marker(coordenadas, {
+            icon: crearIconoUbicacion(punto),
+            title: punto === "origen" ? "Origen del traslado" : "Destino del traslado"
+          }).addTo(mapa).bindPopup(texto);
+          puntos.push(coordenadas);
+        });
+        const ruta = rutaDelTraslado(traslado);
+        if (ruta) {
+          const capaRuta = L.geoJSON(ruta, { style: { color: "#087e8b", weight: 5, opacity: 0.85 } }).addTo(mapa);
+          const limites = capaRuta.getBounds();
+          puntos.forEach(punto => limites.extend(punto));
+          mapa.fitBounds(limites, { padding: [45, 45], maxZoom: 16 });
+        } else if (puntos.length) mapa.fitBounds(puntos, { padding: [45, 45], maxZoom: 16 });
+      }
+
+      function crearFicha(traslado, ejemplo = false) {
+        const ficha = document.getElementById("plantillaFicha").content.firstElementChild.cloneNode(true);
+        if (!ejemplo) fichasPorId.set(String(traslado.id_traslado), ficha);
+        ponerTexto(ficha, "etiqueta", ejemplo ? "VISTA DE EJEMPLO · NO GUARDADA" : "REGISTRO DE TRASLADO");
+        ponerTexto(ficha, "titulo", ejemplo ? "Ejemplo de ficha" : "Traslado n.º " + traslado.id_traslado);
+        ponerTexto(ficha, "origen", traslado.origen);
+        ponerTexto(ficha, "destino", traslado.destino);
+        ponerTexto(ficha, "tipo_carga", traslado.tipo_carga);
+        ponerTexto(ficha, "nombre_paciente", traslado.nombre_paciente || "No corresponde");
+        ponerTexto(ficha, "matricula", traslado.matricula);
+        ponerTexto(ficha, "nombre_conductor", traslado.nombre_conductor);
+        ponerTexto(ficha, "nombre_acompanante", traslado.nombre_acompanante || "Sin acompañante");
+        ponerTexto(ficha, "nombre_creador", traslado.nombre_creador);
+        ponerTexto(ficha, "salida_prevista", traslado.salida_prevista);
+        ponerTexto(ficha, "salida_real", traslado.salida_real || "Pendiente");
+        ponerTexto(ficha, "llegada_real", traslado.llegada_real || "Pendiente");
+        ponerTexto(ficha, "distancia", formatearDistancia(traslado.distancia_metros));
+        ponerTexto(ficha, "duracion", formatearDuracion(traslado.duracion_segundos));
+        ponerTexto(ficha, "llegada_estimada", traslado.llegada_estimada || "Pendiente de cálculo");
+        ponerTexto(ficha, "descripcion_carga", traslado.descripcion_carga || "");
+        ficha.querySelector(".descripcion-traslado").hidden = !traslado.descripcion_carga;
+
+        const prioridad = ficha.querySelector('[data-campo="prioridad"]');
+        prioridad.textContent = "Prioridad " + traslado.prioridad;
+        prioridad.classList.add(clasesPorPrioridad[traslado.prioridad] || "estado-inactivo");
+        const estado = ficha.querySelector('[data-campo="estado"]');
+        estado.textContent = traslado.estado;
+        estado.classList.add(clasesPorEstado[traslado.estado] || "estado-inactivo");
+
+        const acciones = ficha.querySelector(".acciones-traslado");
+        const botonAvanzar = ficha.querySelector('[data-accion="avanzar"]');
+        const botonCancelar = ficha.querySelector('[data-accion="cancelar"]');
+        const avisoMapa = ficha.querySelector(".mapa-aviso");
+        const notaMapa = ficha.querySelector(".mapa-nota");
+        const tieneUbicaciones = coordenadasDeTraslado(traslado, "origen") && coordenadasDeTraslado(traslado, "destino");
+        const botonRuta = ficha.querySelector('[data-accion="calcular-ruta"]');
+        ficha.querySelector('[data-campo="gps"]').hidden = ejemplo;
+        botonRuta.hidden = ejemplo || !tieneUbicaciones || Boolean(rutaDelTraslado(traslado));
+        botonRuta.addEventListener("click", () => calcularRutaFicha(traslado, botonRuta));
+        avisoMapa.hidden = Boolean(tieneUbicaciones);
+        notaMapa.textContent = ejemplo
+          ? "Puntos de ejemplo para probar el diseño de la ficha."
+          : tieneUbicaciones
+            ? rutaDelTraslado(traslado)
+              ? "O: origen · D: destino. Recorrido calculado con OSRM; tiempo orientativo."
+              : "O: origen · D: destino. El recorrido todavía no fue calculado."
+            : "Este registro se guardó sin puntos en el mapa.";
+
+        if (ejemplo || traslado.estado === "Cancelado") {
+          acciones.hidden = true;
+        } else {
+          ficha.querySelector('[data-accion="editar"]').addEventListener("click", () => abrirFormulario(traslados.find(dato => dato.id_traslado == traslado.id_traslado) || traslado));
+          botonAvanzar.hidden = traslado.estado === "Finalizado";
+          botonCancelar.hidden = traslado.estado === "Finalizado";
+          botonAvanzar.textContent = traslado.estado === "Programado" ? "Iniciar" : "Finalizar";
+          botonAvanzar.addEventListener("click", function () {
+            const actual = traslados.find(dato => dato.id_traslado == traslado.id_traslado) || traslado;
+            cambiarEstado(actual.estado === "Programado" ? "iniciar" : "finalizar", actual);
+          });
+          botonCancelar.addEventListener("click", () => cambiarEstado("cancelar", traslado));
+        }
+
+        listaTraslados.append(ficha);
+        iniciarMapa(listaTraslados.lastElementChild.querySelector(".mapa-traslado"), traslado);
+      }
+
+      function mostrarFichas() {
+        versionFichas++;
+        mapasFichas.forEach(mapa => mapa.remove());
+        mapasFichas = [];
+        mapasSeguimiento.clear();
+        fichasPorId.clear();
+        listaTraslados.replaceChildren();
+        document.getElementById("cantidadTraslados").textContent = traslados.length + (traslados.length === 1 ? " traslado registrado" : " traslados registrados");
+
+        if (traslados.length === 0) {
+          crearFicha({
+            origen: "Hospital de Clínicas, Montevideo", destino: "Hospital Maciel, Montevideo",
+            origen_latitud: -34.8926, origen_longitud: -56.1548,
+            destino_latitud: -34.9087, destino_longitud: -56.2055,
+            tipo_carga: "Paciente", nombre_paciente: "Paciente de ejemplo", matricula: "Por asignar",
+            nombre_conductor: "Por asignar", nombre_acompanante: "Por asignar", nombre_creador: "Equipo PULSO",
+            salida_prevista: "Por definir", salida_real: null, llegada_real: null,
+            descripcion_carga: "Traslado de ejemplo para probar el diseño de la ficha.",
+            prioridad: "Media", estado: "Programado"
+          }, true);
+        } else {
+          traslados.forEach(function (traslado) {
+            const recorrido = rutasCalculadas.get(claveUbicaciones(traslado));
+            crearFicha(recorrido ? { ...traslado, ...recorrido, llegada_estimada: formatearLlegada(traslado.salida_calculo || traslado.salida_prevista_formulario, recorrido.duracion_segundos) } : traslado);
+          });
+        }
+        actualizarSeguimiento();
+      }
+
+      // Actualiza solo el GPS y los estados; no toca el formulario ni recarga los mapas.
+      async function actualizarSeguimiento() {
+        if (consultandoSeguimiento || document.hidden) return;
+        consultandoSeguimiento = true;
+        const versionConsultada = versionFichas;
+        const controlador = new AbortController();
+        const tiempoLimite = setTimeout(() => controlador.abort(), 12000);
+        try {
+          const respuesta = await fetch("seguimiento.php", { cache: "no-store", signal: controlador.signal });
+          const datos = await respuesta.json();
+          if (!respuesta.ok) throw new Error(datos.error || "No se pudo consultar el seguimiento.");
+          if (versionConsultada !== versionFichas) return;
+          datos.seguimientos.forEach(function (seguimiento) {
+            const id = String(seguimiento.id_traslado);
+            const ficha = fichasPorId.get(id);
+            const traslado = traslados.find(dato => String(dato.id_traslado) === id);
+            if (!ficha || !traslado) return;
+            traslado.estado = seguimiento.estado;
+            traslado.salida_real = seguimiento.salida_real;
+            traslado.llegada_real = seguimiento.llegada_real;
+            traslado.salida_calculo = seguimiento.salida_calculo;
+            if (!seccionFormulario.hidden && formulario.elements.id_traslado.value === id) {
+              salidaRealFormulario = seguimiento.salida_real ? seguimiento.salida_calculo : null;
+              actualizarLlegadaFormulario();
+            }
+            traslado.id_conductor = seguimiento.id_conductor;
+            if (seguimiento.nombre_conductor) traslado.nombre_conductor = seguimiento.nombre_conductor;
+            ["salida_real", "llegada_real"].forEach(campo => ponerTexto(ficha, campo, traslado[campo] || "Pendiente"));
+            ponerTexto(ficha, "nombre_conductor", traslado.nombre_conductor);
+            const recorrido = rutasCalculadas.get(claveUbicaciones(traslado));
+            if (recorrido) ponerTexto(ficha, "llegada_estimada", formatearLlegada(traslado.salida_calculo, recorrido.duracion_segundos));
+            const estado = ficha.querySelector('[data-campo="estado"]');
+            estado.textContent = seguimiento.estado;
+            estado.className = "estado " + (clasesPorEstado[seguimiento.estado] || "estado-inactivo");
+            ficha.querySelector(".acciones-traslado").hidden = seguimiento.estado === "Cancelado";
+            const cerrado = !["Programado", "En curso"].includes(seguimiento.estado);
+            ficha.querySelector('[data-accion="avanzar"]').hidden = cerrado;
+            ficha.querySelector('[data-accion="avanzar"]').textContent = seguimiento.estado === "Programado" ? "Iniciar" : "Finalizar";
+            ficha.querySelector('[data-accion="cancelar"]').hidden = cerrado;
+            const entrada = mapasSeguimiento.get(id);
+            const nota = ficha.querySelector('[data-campo="gps"]');
+            if (seguimiento.latitud === null || seguimiento.longitud === null) {
+              nota.textContent = "Sin ubicación GPS registrada para el conductor asignado.";
+              if (entrada?.marcador) entrada.mapa.removeLayer(entrada.marcador);
+              if (entrada) entrada.marcador = null;
+              return;
+            }
+            const coordenadas = [Number(seguimiento.latitud), Number(seguimiento.longitud)];
+            if (!coordenadas.every(Number.isFinite) || Math.abs(coordenadas[0]) > 90 || Math.abs(coordenadas[1]) > 180) return;
+            const reciente = seguimiento.estado === "En curso" && Number(seguimiento.segundos_desde_registro) <= 45;
+            const texto = (reciente ? "GPS del chofer" : "Última ubicación conocida") + " · " + seguimiento.fecha_registro +
+              " · precisión aproximada: " + Math.round(Number(seguimiento.precision_metros)) + " m.";
+            nota.textContent = texto + (reciente ? "" : " No indica seguimiento activo.");
+            if (!entrada) return;
+            const icono = L.divIcon({
+              className: "marcador-ubicacion marcador-gps" + (reciente ? "" : " marcador-gps-antiguo"),
+              html: "G", iconSize: [32, 32], iconAnchor: [16, 16]
+            });
+            if (!entrada.marcador) {
+              entrada.marcador = L.marker(coordenadas, { icon: icono, title: "Ubicación GPS del chofer" }).addTo(entrada.mapa);
+              const puntos = [coordenadas, coordenadasDeTraslado(traslado, "origen"), coordenadasDeTraslado(traslado, "destino")].filter(Boolean);
+              entrada.mapa.fitBounds(puntos, { padding: [45, 45], maxZoom: 16 });
+            } else entrada.marcador.setLatLng(coordenadas).setIcon(icono);
+            const contenido = document.createElement("span");
+            contenido.textContent = texto;
+            entrada.marcador.bindPopup(contenido);
+          });
+        } catch (error) {
+          if (versionConsultada !== versionFichas) return;
+          fichasPorId.forEach(ficha => ponerTexto(ficha, "gps", "No se pudo actualizar el GPS. La ubicación visible puede estar desactualizada."));
+          mapasSeguimiento.forEach(entrada => entrada.marcador?.getElement()?.classList.add("marcador-gps-antiguo"));
+        } finally {
+          clearTimeout(tiempoLimite);
+          consultandoSeguimiento = false;
+          if (versionConsultada !== versionFichas) actualizarSeguimiento();
+        }
+      }
+
+      async function cargarDatos() {
+        const respuesta = await fetch("traslados.php");
+        const datos = await respuesta.json();
+        if (!respuesta.ok) throw new Error(datos.error || "No se pudieron cargar los traslados.");
+        traslados = datos.traslados;
+        opciones = datos.opciones;
+        cargarOpciones();
+        mostrarFichas();
+        document.getElementById("botonNuevoTraslado").disabled = false;
+      }
+
+      async function enviarFormulario(datos) {
+        const respuesta = await fetch("traslados.php", { method: "POST", body: datos });
+        const resultado = await respuesta.json();
+        if (!respuesta.ok) throw new Error(resultado.error || "No se pudo guardar el traslado.");
+        return resultado;
+      }
+
+      async function cambiarEstado(accion, traslado) {
+        if (accion === "cancelar" && !confirm("¿Dar de baja el traslado n.º " + traslado.id_traslado + "? Quedará como Cancelado.")) return;
+        const datos = new FormData();
+        datos.set("accion", accion);
+        datos.set("id_traslado", traslado.id_traslado);
+        try {
+          const resultado = await enviarFormulario(datos);
+          await cargarDatos();
+          mostrarMensaje(resultado.mensaje);
+        } catch (error) {
+          mostrarMensaje(error.message, true);
+        }
+      }
+
+      document.getElementById("botonNuevoTraslado").addEventListener("click", () => abrirFormulario());
+      document.getElementById("botonCancelarFormulario").addEventListener("click", cerrarFormulario);
+      formulario.elements.id_tipo_carga.addEventListener("change", actualizarCampoPaciente);
+      formulario.elements.salida_prevista.addEventListener("change", actualizarLlegadaFormulario);
+      document.getElementById("botonCalcularRuta").addEventListener("click", calcularRutaFormulario);
+      document.querySelectorAll("[data-punto]").forEach(function (boton) {
+        boton.addEventListener("click", () => elegirPuntoActivo(boton.dataset.punto));
+      });
+      document.querySelectorAll("[data-buscar-punto]").forEach(function (boton) {
+        boton.addEventListener("click", () => buscarUbicacion(boton.dataset.buscarPunto));
+      });
+      ["origen", "destino"].forEach(function (punto) {
+        formulario.elements[punto].addEventListener("input", function () {
+          const estabaMarcado = Boolean(marcadoresFormulario[punto]);
+          limpiarPuntoFormulario(punto);
+          if (estabaMarcado) elegirPuntoActivo(punto);
+          else actualizarInstruccionMapa();
+        });
+      });
+      formulario.addEventListener("submit", async function (evento) {
+        evento.preventDefault();
+        if (!marcadoresFormulario.origen || !marcadoresFormulario.destino) {
+          mostrarMensaje("Elegí el origen y el destino en las búsquedas o marcalos en el mapa antes de guardar.", true);
+          document.getElementById("mapaFormulario").scrollIntoView({ behavior: "smooth", block: "center" });
+          return;
+        }
+        const botonGuardar = document.getElementById("botonGuardarTraslado");
+        botonGuardar.disabled = true;
+        const datos = new FormData(formulario);
+        datos.set("accion", "guardar");
+        try {
+          const resultado = await enviarFormulario(datos);
+          cerrarFormulario();
+          await cargarDatos();
+          mostrarMensaje(resultado.mensaje);
+        } catch (error) {
+          mostrarMensaje(error.message, true);
+        } finally {
+          botonGuardar.disabled = false;
+        }
+      });
+
+      cargarDatos().catch(error => mostrarMensaje(error.message, true));
+      setInterval(actualizarSeguimiento, 15000);
+      document.addEventListener("visibilitychange", () => { if (!document.hidden) actualizarSeguimiento(); });
+    </script>
+  </body>
+</html>

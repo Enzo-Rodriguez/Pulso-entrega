@@ -1,0 +1,438 @@
+.pagina-traslados {
+  width: min(1280px, calc(100% - 32px));
+}
+
+.formulario-traslado {
+  margin-bottom: 24px;
+}
+
+.formulario-traslado h2 {
+  margin-top: 0;
+}
+
+.formulario-traslado > p {
+  margin-bottom: 22px;
+}
+
+.campo-direccion {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-content: start;
+  align-items: end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.campo-direccion > label {
+  min-width: 0;
+}
+
+.mensaje-busqueda,
+.resultados-ubicacion {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 13px;
+}
+
+.mensaje-busqueda {
+  color: var(--texto-suave);
+}
+
+.mensaje-busqueda-error {
+  color: #a12626;
+}
+
+.resultados-ubicacion {
+  list-style: none;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  background: var(--blanco);
+}
+
+.resultados-ubicacion li + li {
+  border-top: 1px solid var(--borde);
+}
+
+.resultados-ubicacion button {
+  display: block;
+  width: 100%;
+  border: 0;
+  padding: 10px 12px;
+  color: var(--azul);
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.resultados-ubicacion button:hover,
+.resultados-ubicacion button:focus-visible {
+  background: #eaf1f3;
+}
+
+.seleccion-ubicaciones {
+  min-width: 0;
+  margin: 4px 0;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  padding: 16px;
+  background: #f9fcfc;
+}
+
+.seleccion-ubicaciones legend {
+  padding: 0 6px;
+  color: var(--azul);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.ubicaciones-acciones .boton-punto-activo {
+  color: var(--blanco);
+  background: var(--azul);
+}
+
+.instruccion-mapa {
+  margin: 12px 0;
+  color: var(--texto-suave);
+  font-size: 13px;
+}
+
+.mapa-formulario {
+  z-index: 0;
+  height: 320px;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  background: #eaf1f3;
+}
+
+.seleccion-ubicaciones .mapa-nota {
+  margin-top: 12px;
+}
+
+.resumen-ruta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 12px 0;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 14px;
+  background: var(--blanco);
+}
+
+.resumen-ruta dt {
+  margin-bottom: 5px;
+  color: var(--texto-suave);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.resumen-ruta dd {
+  margin: 0;
+  color: var(--azul);
+  font-size: 14px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.marcador-ubicacion {
+  display: grid;
+  place-items: center;
+  border: 3px solid var(--blanco);
+  border-radius: 50%;
+  color: var(--blanco);
+  background: var(--verde-oscuro);
+  box-shadow: 0 2px 8px rgba(8, 45, 88, 0.35);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.marcador-destino {
+  background: var(--azul);
+}
+
+.marcador-gps {
+  background: #246ac1;
+}
+
+.marcador-gps-antiguo {
+  background: #657685;
+}
+
+.seguimiento-nota {
+  color: var(--azul);
+  font-weight: 700;
+}
+
+.formulario-traslado[hidden],
+.resumen-ruta[hidden],
+.mensaje-traslados[hidden],
+.acciones-traslado[hidden],
+.acciones-traslado button[hidden],
+.ficha-traslado-mapa button[hidden],
+.descripcion-traslado[hidden],
+.mapa-aviso[hidden] {
+  display: none;
+}
+
+.mensaje-traslados {
+  margin: 0 0 20px;
+}
+
+.fichas-traslados {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+}
+
+.fichas-traslados > .cantidad-resultados {
+  margin: 0;
+}
+
+.lista-traslados {
+  display: grid;
+  gap: 18px;
+}
+
+.ficha-traslado {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--borde);
+  border-radius: 14px;
+  background: var(--blanco);
+  box-shadow: var(--sombra);
+}
+
+.ficha-traslado-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--borde);
+  padding: 20px 26px;
+}
+
+.ficha-traslado-cabecera h2 {
+  margin: 0;
+  font-size: 23px;
+}
+
+.ficha-traslado-etiqueta {
+  margin: 0 0 5px;
+  color: var(--verde-oscuro);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.ficha-traslado-insignias {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.ficha-traslado-cuerpo {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(380px, 0.9fr);
+}
+
+.ficha-traslado-informacion {
+  min-width: 0;
+  padding: 26px;
+}
+
+.recorrido-traslado {
+  display: grid;
+  gap: 18px;
+  border: 1px solid #d8ebe8;
+  border-radius: 12px;
+  padding: 20px 18px;
+  background: #f5fbf9;
+}
+
+.recorrido-punto {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 12px;
+  position: relative;
+}
+
+.recorrido-origen::after {
+  position: absolute;
+  top: 22px;
+  bottom: -24px;
+  left: 9px;
+  border-left: 2px dashed #a6cdc5;
+  content: "";
+}
+
+.recorrido-marca {
+  width: 20px;
+  height: 20px;
+  border: 5px solid var(--verde);
+  border-radius: 50%;
+  background: var(--blanco);
+}
+
+.recorrido-destino .recorrido-marca {
+  border-color: var(--azul);
+}
+
+.recorrido-titulo,
+.datos-traslado dt,
+.descripcion-traslado > span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--texto-suave);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.recorrido-punto strong {
+  display: block;
+  overflow-wrap: anywhere;
+  color: var(--azul);
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.datos-traslado {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 22px;
+  margin: 24px 0 0;
+}
+
+.datos-traslado div {
+  min-width: 0;
+}
+
+.datos-traslado dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.descripcion-traslado {
+  margin-top: 24px;
+  border-top: 1px solid var(--borde);
+  padding-top: 16px;
+}
+
+.descripcion-traslado p {
+  margin: 0;
+  color: var(--texto);
+  font-size: 14px;
+}
+
+.acciones-traslado {
+  margin-top: 24px;
+  border-top: 1px solid var(--borde);
+  padding-top: 18px;
+}
+
+.ficha-traslado-mapa {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+  border-left: 1px solid var(--borde);
+  padding: 20px;
+  background: #f9fcfc;
+}
+
+.mapa-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--azul);
+  font-size: 14px;
+}
+
+.mapa-cabecera span {
+  color: var(--texto-suave);
+  font-size: 12px;
+}
+
+.mapa-superficie {
+  position: relative;
+  min-height: 360px;
+  flex: 1;
+  overflow: hidden;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: #eaf1f3;
+}
+
+.mapa-traslado {
+  position: absolute;
+  inset: 0;
+}
+
+.mapa-aviso {
+  position: absolute;
+  z-index: 500;
+  top: 14px;
+  right: 14px;
+  left: 58px;
+  margin: 0;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--texto);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 12px rgba(8, 45, 88, 0.12);
+  font-size: 13px;
+}
+
+.mapa-nota {
+  margin: 0;
+  font-size: 12px;
+}
+
+@media (max-width: 1000px) {
+  .ficha-traslado-cuerpo {
+    grid-template-columns: 1fr;
+  }
+
+  .ficha-traslado-mapa {
+    border-top: 1px solid var(--borde);
+    border-left: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .resumen-ruta {
+    grid-template-columns: 1fr;
+  }
+
+  .ficha-traslado-cabecera {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .ficha-traslado-insignias {
+    justify-content: flex-start;
+  }
+
+  .ficha-traslado-informacion,
+  .ficha-traslado-mapa {
+    padding: 18px;
+  }
+
+  .datos-traslado {
+    gap: 16px;
+  }
+
+  .mapa-superficie {
+    min-height: 300px;
+  }
+}
