@@ -1,5 +1,4 @@
-alert("JavaScript funciona");
-const formulario = document.querySelector('#formulario-ingreso');
+const formulario = document.querySelector('#ingreso');
 
 formulario.addEventListener('submit', async(e) => {
 
