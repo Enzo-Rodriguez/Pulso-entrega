@@ -102,6 +102,7 @@ function escapar($valor): string
         <a class="enlace-activo" href="../equipamientos/equipamientos.php">
             Equipamientos
         </a>
+        <a href="../traslados/traslados.html">Traslados</a>
         <a href="../../index.html">Inicio</a>
     </nav>
 </header>
