@@ -1,46 +1,109 @@
 <?php
-header('Content-Type: application/json');
-require_once 'conexion.php';
+
+header("Content-Type: application/json");
+
+require_once "php/conexion.php";
+
 session_start();
 
-$usuario = $_POST['usuario'] ?? '';
-$contrasenia = $_POST['contrasenia'] ?? '';
+$ci = trim($_POST["ci"] ?? "");
+$contrasenia = $_POST["contrasenia"] ?? "";
 
-$stmt = $con->prepare("SELECT id_usuario, id_empleado, nombre_usuario, nombre_completo, email, rol, password_hash FROM usuarios_sistema WHERE nombre_usuario = ?");
-$stmt->bind_param('s', $usuario);
+if ($ci === "" || $contrasenia === "") {
+    echo json_encode([
+        "error" => "Debe ingresar la cédula y la contraseña",
+    ]);
+    exit();
+}
+
+$stmt = $conexion->prepare(
+    "SELECT
+        persona.id_persona,
+        funcionario.id_funcionario,
+        persona.nombres,
+        persona.apellidos,
+        persona.email,
+        persona.contrasenia,
+        funcionario.activo
+    FROM persona
+    INNER JOIN funcionario
+        ON persona.id_persona = funcionario.id_persona
+    WHERE persona.ci = ?",
+);
+
+$stmt->bind_param("s", $ci);
 $stmt->execute();
 
 $resultado = $stmt->get_result();
 
-
 if ($resultado->num_rows === 0) {
-    echo json_encode(['error' => 'El usuario no existe']);
-    exit;
+    echo json_encode([
+        "error" => "La cédula no está registrada",
+    ]);
+    exit();
 }
 
 $fila = $resultado->fetch_assoc();
 
-if (password_verify($contrasenia, $fila['password_hash'])) {
-
-    $_SESSION['id_empleado'] = $fila['id_empleado'];
-    $_SESSION['usuario']     = $fila['nombre_usuario'];
-    $_SESSION['nombre']      = $fila['nombre_completo'];
-    $_SESSION['email']       = $fila['email'];
-    $_SESSION['rol']         = $fila['rol'];
-    $_SESSION['id_usuario']  = $fila['id_usuario'];
-    
-
-    unset($fila['password_hash']);
-
+if (!$fila["activo"]) {
     echo json_encode([
-        'exito' => true,
-        'usuario' => $fila
+        "error" => "El funcionario está inactivo",
     ]);
-} else {
-    echo json_encode(['error' => 'Contraseña incorrecta']);
+    exit();
 }
 
+if ($fila["contrasenia"] === null) {
+    $contraseniaHash = password_hash($contrasenia, PASSWORD_DEFAULT);
+
+    $actualizar = $conexion->prepare(
+        "UPDATE persona
+         SET contrasenia = ?
+         WHERE id_persona = ?",
+    );
+
+    $actualizar->bind_param("si", $contraseniaHash, $fila["id_persona"]);
+
+    if (!$actualizar->execute()) {
+        echo json_encode([
+            "error" => "No se pudo guardar la contraseña",
+        ]);
+        exit();
+    }
+
+    $actualizar->close();
+
+    $_SESSION["id_persona"] = $fila["id_persona"];
+    $_SESSION["id_funcionario"] = $fila["id_funcionario"];
+    $_SESSION["ci"] = $ci;
+    $_SESSION["nombre"] = $fila["nombres"];
+    $_SESSION["apellidos"] = $fila["apellidos"];
+    $_SESSION["email"] = $fila["email"];
+
+    echo json_encode([
+        "exito" => true,
+    ]);
+
+    exit();
+}
+
+if (password_verify($contrasenia, $fila["contrasenia"])) {
+    $_SESSION["id_persona"] = $fila["id_persona"];
+    $_SESSION["id_funcionario"] = $fila["id_funcionario"];
+    $_SESSION["ci"] = $ci;
+    $_SESSION["nombre"] = $fila["nombres"];
+    $_SESSION["apellidos"] = $fila["apellidos"];
+    $_SESSION["email"] = $fila["email"];
+
+    echo json_encode([
+        "exito" => true,
+    ]);
+} else {
+    echo json_encode([
+        "error" => "Contraseña incorrecta",
+    ]);
+}
 
 $stmt->close();
-$con->close();
+$conexion->close();
+
 ?>

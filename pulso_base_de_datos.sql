@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS persona (
     telefono VARCHAR(30),
     direccion VARCHAR(255),
     email VARCHAR(100),
+    contrasenia VARCHAR(255),
     PRIMARY KEY (id_persona)
 ) ENGINE=InnoDB;
 

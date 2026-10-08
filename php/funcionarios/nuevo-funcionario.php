@@ -11,6 +11,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $sexo = trim($_POST["sexo"] ?? "");
     $direccion = trim($_POST["direccion"] ?? "");
     $email = trim($_POST["email"] ?? "");
+    $contrasenia = ($_POST["contrasenia"] ?? "");
     $activo = trim($_POST["activo"] ?? "");
     $nombreTipo = trim($_POST["tipo_funcionario"] ?? "");
 
@@ -46,10 +47,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             $conexion->query(
                 "INSERT INTO persona
-                    (nombres, apellidos, ci, telefono, fecha_nacimiento, sexo, direccion, email)
+                    (nombres, apellidos, ci, telefono, fecha_nacimiento, sexo, direccion, email, contrasenia)
                  VALUES
                     ('$nombres', '$apellidos', '$ci', '$telefono',
-                     $fechaNacimientoParaSQL, '$sexo', '$direccion', '$email')"
+                     $fechaNacimientoParaSQL, '$sexo', '$direccion', '$email', NULL)"
             );
 
             $idPersona = $conexion->insert_id;
