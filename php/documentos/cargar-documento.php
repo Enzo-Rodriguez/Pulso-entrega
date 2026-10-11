@@ -45,10 +45,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $mensajeError = "No se pudo guardar el archivo seleccionado.";
                 } else {
                     try {
+                        $tokenDescarga = bin2hex(random_bytes(32));
                         $guardarDocumento = $conexion->prepare(
-                            "INSERT INTO documento (titulo, ruta_archivo) VALUES (?, ?)"
+                            "INSERT INTO documento
+                             (titulo, ruta_archivo, token_descarga)
+                             VALUES (?, ?, ?)",
                         );
-                        $guardarDocumento->bind_param("ss", $titulo, $rutaParaBase);
+
+                        $guardarDocumento->bind_param("sss", $titulo, $rutaParaBase, $tokenDescarga);
+
                         $guardarDocumento->execute();
                         $guardarDocumento->close();
 

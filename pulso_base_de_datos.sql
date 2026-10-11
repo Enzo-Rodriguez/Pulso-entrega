@@ -196,3 +196,6 @@ INSERT INTO estado_traslado (nombre) VALUES
     ('Finalizado'),
     ('Cancelado')
 ON DUPLICATE KEY UPDATE nombre = VALUES(nombre);
+
+ALTER TABLE documento
+ADD COLUMN token_descarga CHAR(64) NULL UNIQUE;
