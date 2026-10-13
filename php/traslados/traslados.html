@@ -59,8 +59,7 @@
               <input id="origen" name="origen" type="text" maxlength="200" placeholder="Dirección y localidad" required>
             </label>
             <button class="boton boton-secundario" data-buscar-punto="origen" type="button">Buscar</button>
-            <p id="mensajeBusquedaOrigen" class="mensaje-busqueda" role="status" hidden></p>
-            <ul id="resultadosOrigen" class="resultados-ubicacion" aria-label="Resultados para el origen" hidden></ul>
+            <select id="resultadosOrigen" class="resultados-ubicacion" aria-label="Resultados para el origen" hidden></select>
           </div>
 
           <div class="campo-direccion">
@@ -69,18 +68,17 @@
               <input id="destino" name="destino" type="text" maxlength="200" placeholder="Dirección y localidad" required>
             </label>
             <button class="boton boton-secundario" data-buscar-punto="destino" type="button">Buscar</button>
-            <p id="mensajeBusquedaDestino" class="mensaje-busqueda" role="status" hidden></p>
-            <ul id="resultadosDestino" class="resultados-ubicacion" aria-label="Resultados para el destino" hidden></ul>
+            <select id="resultadosDestino" class="resultados-ubicacion" aria-label="Resultados para el destino" hidden></select>
           </div>
 
           <fieldset class="campo-completo seleccion-ubicaciones">
-            <legend>Ubicaciones del traslado</legend>
+            <legend>Ubicaciones del traslado (opcional)</legend>
             <div class="acciones ubicaciones-acciones">
               <button class="boton boton-secundario boton-accion" id="botonMarcarOrigen" data-punto="origen" type="button" aria-pressed="true">Marcar origen</button>
               <button class="boton boton-secundario boton-accion" id="botonMarcarDestino" data-punto="destino" type="button" aria-pressed="false">Marcar destino</button>
               <button class="boton boton-accion" id="botonCalcularRuta" type="button" disabled>Calcular recorrido</button>
             </div>
-            <p id="instruccionMapa" class="instruccion-mapa" role="status">Buscá las direcciones y elegí sus resultados para ubicar los puntos.</p>
+            <p id="instruccionMapa" class="instruccion-mapa" role="status">Buscá las direcciones con Geoapify o marcá los puntos manualmente. El mapa sigue siendo opcional.</p>
             <div id="mapaFormulario" class="mapa-formulario" aria-label="Mapa para elegir el origen y el destino"></div>
             <p id="mensajeRuta" class="instruccion-mapa" role="status">Elegí los dos puntos para calcular el recorrido.</p>
             <dl id="resumenRuta" class="resumen-ruta" hidden>
@@ -88,7 +86,7 @@
               <div><dt>Tiempo estimado</dt><dd id="duracionRuta"></dd></div>
               <div><dt>Llegada estimada</dt><dd id="llegadaRuta"></dd></div>
             </dl>
-            <p class="mapa-nota">Direcciones obtenidas con <a href="https://www.geoapify.com/" target="_blank" rel="noopener noreferrer">Geoapify</a>. Podés ajustar los marcadores o marcar los puntos manualmente. Si cambiás una dirección, volvé a buscar o marcar su ubicación.</p>
+            <p class="mapa-nota">Búsqueda de direcciones realizada con Geoapify. El mapa es opcional y los marcadores se pueden ajustar manualmente.</p>
             <p class="mapa-nota">Recorrido calculado con OSRM. El tiempo es orientativo y no incluye las demoras propias del traslado.</p>
           </fieldset>
 
@@ -242,7 +240,7 @@
       const fichasPorId = new Map();
       let consultandoSeguimiento = false;
       let versionFichas = 0;
-      let busquedasUbicacion = { origen: null, destino: null };
+      let resultadosBusqueda = { origen: [], destino: [] };
       let rutaFormulario = null;
       let capaRutaFormulario = null;
       let consultaRuta = null;
@@ -297,6 +295,7 @@
 
       function abrirFormulario(traslado = null) {
         formulario.reset();
+        ["origen", "destino"].forEach(limpiarResultadosBusqueda);
         salidaRealFormulario = traslado?.salida_real ? traslado.salida_calculo : null;
         formulario.elements.id_traslado.value = traslado?.id_traslado ?? "";
         formulario.elements.id_creador.disabled = Boolean(traslado);
@@ -329,100 +328,66 @@
         ficha.querySelector('[data-campo="' + campo + '"]').textContent = valor;
       }
 
-      function elementosBusqueda(punto) {
-        const nombre = punto === "origen" ? "Origen" : "Destino";
-        return {
-          boton: document.querySelector('[data-buscar-punto="' + punto + '"]'),
-          mensaje: document.getElementById("mensajeBusqueda" + nombre),
-          resultados: document.getElementById("resultados" + nombre)
-        };
+      function nombrePunto(punto) {
+        return punto === "origen" ? "Origen" : "Destino";
       }
 
-      function mostrarMensajeBusqueda(punto, texto, esError = false) {
-        const mensaje = elementosBusqueda(punto).mensaje;
-        mensaje.textContent = texto;
-        mensaje.classList.toggle("mensaje-busqueda-error", esError);
-        mensaje.hidden = false;
+      function limpiarResultadosBusqueda(punto) {
+        resultadosBusqueda[punto] = [];
+        const seleccion = document.getElementById("resultados" + nombrePunto(punto));
+        seleccion.replaceChildren();
+        seleccion.hidden = true;
       }
 
-      function cancelarBusqueda(punto) {
-        busquedasUbicacion[punto]?.abort();
-        busquedasUbicacion[punto] = null;
-        const elementos = elementosBusqueda(punto);
-        elementos.boton.disabled = false;
-        elementos.boton.textContent = "Buscar";
-        elementos.mensaje.hidden = true;
-        elementos.resultados.replaceChildren();
-        elementos.resultados.hidden = true;
-      }
-
-      async function buscarUbicacion(punto) {
-        cancelarBusqueda(punto);
-        actualizarInstruccionMapa();
+      async function buscarDireccion(punto, boton) {
         const direccion = formulario.elements[punto].value.trim();
+        limpiarResultadosBusqueda(punto);
         if (direccion.length < 3) {
-          mostrarMensajeBusqueda(punto, "Escribí una dirección y su localidad antes de buscar.", true);
-          return;
-        }
-        if (typeof L === "undefined") {
-          mostrarMensajeBusqueda(punto, "No se pudo cargar el mapa. Revisá la conexión y recargá la página.", true);
+          mostrarMensaje("Escribí una dirección antes de buscar.", true);
           return;
         }
 
-        const controlador = new AbortController();
-        busquedasUbicacion[punto] = controlador;
-        const elementos = elementosBusqueda(punto);
-        elementos.boton.disabled = true;
-        elementos.boton.textContent = "Buscando...";
-        mostrarMensajeBusqueda(punto, "Buscando la dirección...");
+        boton.disabled = true;
+        boton.textContent = "Buscando...";
         const datos = new FormData();
         datos.set("accion", "buscar_ubicacion");
         datos.set("direccion", direccion);
 
         try {
-          const respuesta = await fetch("traslados.php", { method: "POST", body: datos, signal: controlador.signal });
+          const respuesta = await fetch("traslados.php", { method: "POST", body: datos });
           const resultado = await respuesta.json();
           if (!respuesta.ok) throw new Error(resultado.error || "No se pudo buscar la dirección.");
-          // Una respuesta anterior no debe reemplazar una dirección recién cambiada.
-          if (busquedasUbicacion[punto] !== controlador || seccionFormulario.hidden || formulario.elements[punto].value.trim() !== direccion) return;
-          if (!Array.isArray(resultado.resultados)) throw new Error("La búsqueda devolvió una respuesta no válida.");
-          if (resultado.resultados.length === 0) {
-            mostrarMensajeBusqueda(punto, "No se encontraron ubicaciones. Probá agregando calle, número y localidad.");
-            return;
-          }
+          if (!resultado.resultados.length) throw new Error("Geoapify no encontró esa dirección.");
 
-          resultado.resultados.forEach(function (ubicacion) {
-            const item = document.createElement("li");
-            const boton = document.createElement("button");
-            boton.type = "button";
-            boton.textContent = ubicacion.direccion;
-            boton.addEventListener("click", function () {
-              if (ubicacion.direccion.length > formulario.elements[punto].maxLength) {
-                mostrarMensajeBusqueda(punto, "La dirección encontrada es demasiado larga. Buscá una dirección más corta o marcá el punto manualmente.", true);
-                return;
-              }
-              formulario.elements[punto].value = ubicacion.direccion;
-              marcarPuntoFormulario(punto, [ubicacion.latitud, ubicacion.longitud]);
-              const puntos = Object.values(marcadoresFormulario).filter(Boolean).map(marcador => marcador.getLatLng());
-              mapaFormulario.fitBounds(puntos, { padding: [45, 45], maxZoom: 16 });
-              mostrarMensajeBusqueda(punto, "Ubicación seleccionada. Podés ajustar el marcador en el mapa.");
-            });
-            item.append(boton);
-            elementos.resultados.append(item);
-          });
-          elementos.resultados.hidden = false;
-          mostrarMensajeBusqueda(punto, "Elegí la ubicación correcta de la lista.");
+          resultadosBusqueda[punto] = resultado.resultados;
+          const seleccion = document.getElementById("resultados" + nombrePunto(punto));
+          seleccion.add(new Option("Elegir ubicación", ""));
+          resultado.resultados.forEach((ubicacion, indice) => seleccion.add(new Option(ubicacion.direccion, indice)));
+          seleccion.hidden = false;
+          mostrarMensaje("Geoapify encontró varias ubicaciones. Elegí la correcta.");
         } catch (error) {
-          if (error.name !== "AbortError" && busquedasUbicacion[punto] === controlador) {
-            mostrarMensajeBusqueda(punto, error.message, true);
-          }
+          mostrarMensaje(error.message, true);
         } finally {
-          if (busquedasUbicacion[punto] === controlador) {
-            busquedasUbicacion[punto] = null;
-            elementos.boton.disabled = false;
-            elementos.boton.textContent = "Buscar";
-          }
+          boton.disabled = false;
+          boton.textContent = "Buscar";
         }
+      }
+
+      function elegirResultado(punto) {
+        const seleccion = document.getElementById("resultados" + nombrePunto(punto));
+        if (seleccion.value === "") return;
+        const ubicacion = resultadosBusqueda[punto][Number(seleccion.value)];
+        if (!ubicacion) return;
+
+        formulario.elements[punto].value = ubicacion.direccion;
+        formulario.elements[punto + "_latitud"].value = Number(ubicacion.latitud).toFixed(7);
+        formulario.elements[punto + "_longitud"].value = Number(ubicacion.longitud).toFixed(7);
+        if (typeof L !== "undefined" && mapaFormulario) {
+          marcarPuntoFormulario(punto, [ubicacion.latitud, ubicacion.longitud]);
+          const puntos = Object.values(marcadoresFormulario).filter(Boolean).map(marcador => marcador.getLatLng());
+          mapaFormulario.fitBounds(puntos, { padding: [45, 45], maxZoom: 16 });
+        }
+        mostrarMensaje("Ubicación seleccionada con Geoapify.");
       }
 
       function crearIconoUbicacion(punto) {
@@ -580,7 +545,7 @@
         const ambosMarcados = marcadoresFormulario.origen && marcadoresFormulario.destino;
         document.getElementById("instruccionMapa").textContent = ambosMarcados
           ? "Origen y destino marcados. Podés mover los marcadores para ajustar sus ubicaciones."
-          : "Buscá las direcciones y elegí sus resultados. También podés marcar el " + puntoActivo + " en el mapa.";
+          : "Buscá la dirección con Geoapify o marcá el " + puntoActivo + " manualmente.";
       }
 
       function elegirPuntoActivo(punto) {
@@ -604,7 +569,6 @@
       }
 
       function marcarPuntoFormulario(punto, ubicacion) {
-        cancelarBusqueda(punto);
         ubicacion = L.latLng(ubicacion).wrap();
         if (marcadoresFormulario[punto]) {
           marcadoresFormulario[punto].setLatLng(ubicacion);
@@ -626,7 +590,6 @@
       }
 
       function limpiarPuntoFormulario(punto) {
-        cancelarBusqueda(punto);
         if (marcadoresFormulario[punto]) mapaFormulario.removeLayer(marcadoresFormulario[punto]);
         marcadoresFormulario[punto] = null;
         formulario.elements[punto + "_latitud"].value = "";
@@ -649,7 +612,7 @@
       function prepararMapaFormulario(traslado) {
         limpiarPuntosFormulario();
         if (typeof L === "undefined") {
-          mostrarMensaje("No se pudo cargar el mapa. Revisá la conexión y recargá la página.", true);
+          document.getElementById("mapaFormulario").textContent = "Mapa no disponible. Podés guardar el traslado usando solamente las direcciones.";
           return;
         }
         if (!mapaFormulario) {
@@ -924,10 +887,12 @@
         boton.addEventListener("click", () => elegirPuntoActivo(boton.dataset.punto));
       });
       document.querySelectorAll("[data-buscar-punto]").forEach(function (boton) {
-        boton.addEventListener("click", () => buscarUbicacion(boton.dataset.buscarPunto));
+        boton.addEventListener("click", () => buscarDireccion(boton.dataset.buscarPunto, boton));
       });
       ["origen", "destino"].forEach(function (punto) {
+        document.getElementById("resultados" + nombrePunto(punto)).addEventListener("change", () => elegirResultado(punto));
         formulario.elements[punto].addEventListener("input", function () {
+          limpiarResultadosBusqueda(punto);
           const estabaMarcado = Boolean(marcadoresFormulario[punto]);
           limpiarPuntoFormulario(punto);
           if (estabaMarcado) elegirPuntoActivo(punto);
@@ -936,11 +901,6 @@
       });
       formulario.addEventListener("submit", async function (evento) {
         evento.preventDefault();
-        if (!marcadoresFormulario.origen || !marcadoresFormulario.destino) {
-          mostrarMensaje("Elegí el origen y el destino en las búsquedas o marcalos en el mapa antes de guardar.", true);
-          document.getElementById("mapaFormulario").scrollIntoView({ behavior: "smooth", block: "center" });
-          return;
-        }
         const botonGuardar = document.getElementById("botonGuardarTraslado");
         botonGuardar.disabled = true;
         const datos = new FormData(formulario);

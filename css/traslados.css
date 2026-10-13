@@ -17,7 +17,6 @@
 .campo-direccion {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  align-content: start;
   align-items: end;
   gap: 8px;
   min-width: 0;
@@ -27,50 +26,9 @@
   min-width: 0;
 }
 
-.mensaje-busqueda,
 .resultados-ubicacion {
   grid-column: 1 / -1;
-  margin: 0;
-  font-size: 13px;
-}
-
-.mensaje-busqueda {
-  color: var(--texto-suave);
-}
-
-.mensaje-busqueda-error {
-  color: #a12626;
-}
-
-.resultados-ubicacion {
-  list-style: none;
-  padding: 0;
-  overflow: hidden;
-  border: 1px solid var(--borde);
-  border-radius: 8px;
-  background: var(--blanco);
-}
-
-.resultados-ubicacion li + li {
-  border-top: 1px solid var(--borde);
-}
-
-.resultados-ubicacion button {
-  display: block;
   width: 100%;
-  border: 0;
-  padding: 10px 12px;
-  color: var(--azul);
-  background: transparent;
-  font: inherit;
-  text-align: left;
-  overflow-wrap: anywhere;
-  cursor: pointer;
-}
-
-.resultados-ubicacion button:hover,
-.resultados-ubicacion button:focus-visible {
-  background: #eaf1f3;
 }
 
 .seleccion-ubicaciones {

@@ -29,17 +29,27 @@ function idDelFormulario(string $campo, bool $opcional = false): ?int
     return $id;
 }
 
-function coordenadasDelFormulario(string $punto): array
+function coordenadasDelFormulario(string $punto, bool $opcionales = true): array
 {
-    $latitud = filter_var(textoDelFormulario($punto . "_latitud"), FILTER_VALIDATE_FLOAT);
-    $longitud = filter_var(textoDelFormulario($punto . "_longitud"), FILTER_VALIDATE_FLOAT);
+    $textoLatitud = textoDelFormulario($punto . "_latitud");
+    $textoLongitud = textoDelFormulario($punto . "_longitud");
+
+    if ($textoLatitud === "" && $textoLongitud === "") {
+        if ($opcionales) {
+            return [null, null];
+        }
+        responder(400, ["error" => "Marcá el $punto en el mapa para calcular el recorrido."]);
+    }
+
+    $latitud = filter_var($textoLatitud, FILTER_VALIDATE_FLOAT);
+    $longitud = filter_var($textoLongitud, FILTER_VALIDATE_FLOAT);
 
     if (
         $latitud === false || $longitud === false ||
         !is_finite($latitud) || !is_finite($longitud) ||
         $latitud < -90 || $latitud > 90 || $longitud < -180 || $longitud > 180
     ) {
-        responder(400, ["error" => "Marcá correctamente el $punto en el mapa antes de guardar."]);
+        responder(400, ["error" => "Las coordenadas del $punto no son válidas."]);
     }
 
     return [round($latitud, 7), round($longitud, 7)];
@@ -62,97 +72,56 @@ if (!in_array($metodo, ["GET", "POST"], true)) {
 
 $accion = $metodo === "POST" ? textoDelFormulario("accion") : "";
 
-// La búsqueda de direcciones no necesita conectarse a la base de datos.
 if ($accion === "buscar_ubicacion") {
     $direccion = textoDelFormulario("direccion");
     if (mb_strlen($direccion, "UTF-8") < 3 || mb_strlen($direccion, "UTF-8") > 200) {
-        responder(400, ["error" => "Escribí una dirección de entre 3 y 200 caracteres."]);
+        responder(400, ["error" => "Escribí una dirección válida."]);
     }
 
-    // La clave se lee en el servidor y nunca se devuelve al navegador.
-    $claveGeoapify = getenv("GEOAPIFY_API_KEY");
-    if (!is_string($claveGeoapify) || trim($claveGeoapify) === "") {
-        $archivoConfiguracion = __DIR__ . "/geoapify.local.php";
-        if (!is_file($archivoConfiguracion) || !is_readable($archivoConfiguracion)) {
-            responder(503, ["error" => "Falta configurar la clave de Geoapify en el servidor."]);
-        }
-        try {
-            $claveGeoapify = require $archivoConfiguracion;
-        } catch (Throwable $error) {
-            responder(503, ["error" => "No se pudo cargar la configuración de Geoapify."]);
-        }
+    $archivoClave = __DIR__ . "/geoapify.local.php";
+    if (!is_file($archivoClave)) {
+        responder(503, ["error" => "Falta configurar Geoapify."]);
     }
+    $claveGeoapify = require $archivoClave;
     if (!is_string($claveGeoapify) || trim($claveGeoapify) === "") {
-        responder(503, ["error" => "Falta configurar una clave válida de Geoapify."]);
+        responder(503, ["error" => "La configuración de Geoapify no es válida."]);
     }
     if (!function_exists("curl_init")) {
-        responder(503, ["error" => "El servidor necesita cURL para buscar direcciones."]);
+        responder(503, ["error" => "PHP necesita cURL para buscar direcciones."]);
     }
 
-    $parametrosGeoapify = http_build_query([
+    $parametros = http_build_query([
         "text" => $direccion,
         "lang" => "es",
         "format" => "json",
         "limit" => 5,
         "bias" => "countrycode:uy",
         "apiKey" => trim($claveGeoapify),
-    ], "", "&", PHP_QUERY_RFC3986);
-    $consultaGeoapify = curl_init("https://api.geoapify.com/v1/geocode/search?" . $parametrosGeoapify);
-    curl_setopt_array($consultaGeoapify, [
+    ]);
+    $consulta = curl_init("https://api.geoapify.com/v1/geocode/search?" . $parametros);
+    curl_setopt_array($consulta, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_CONNECTTIMEOUT => 5,
-        CURLOPT_TIMEOUT => 15,
-        CURLOPT_FOLLOWLOCATION => false,
-        CURLOPT_SSL_VERIFYPEER => true,
-        CURLOPT_SSL_VERIFYHOST => 2,
+        CURLOPT_TIMEOUT => 12,
     ]);
-    $contenidoGeoapify = curl_exec($consultaGeoapify);
-    $errorConexion = curl_errno($consultaGeoapify);
-    $codigoGeoapify = curl_getinfo($consultaGeoapify, CURLINFO_HTTP_CODE);
-    curl_close($consultaGeoapify);
+    $contenido = curl_exec($consulta);
+    $codigoHttp = curl_getinfo($consulta, CURLINFO_HTTP_CODE);
+    curl_close($consulta);
 
-    if ($errorConexion === CURLE_OPERATION_TIMEDOUT) {
-        responder(504, ["error" => "La búsqueda demoró demasiado. Probá de nuevo."]);
-    }
-    if ($contenidoGeoapify === false || $errorConexion !== 0) {
-        responder(502, ["error" => "No se pudo conectar con el servicio de direcciones."]);
-    }
-    if (in_array($codigoGeoapify, [401, 403], true)) {
-        responder(503, ["error" => "Revisá la configuración de la clave de Geoapify en el servidor."]);
-    }
-    if ($codigoGeoapify === 429) {
-        responder(429, ["error" => "Se alcanzó el límite de búsquedas. Esperá y probá de nuevo."]);
-    }
-    if ($codigoGeoapify !== 200) {
-        responder(502, ["error" => "El servicio de direcciones no pudo completar la búsqueda."]);
+    if ($contenido === false || $codigoHttp !== 200) {
+        responder(502, ["error" => "No se pudo consultar Geoapify."]);
     }
 
-    $datosGeoapify = json_decode($contenidoGeoapify, true);
-    if (
-        json_last_error() !== JSON_ERROR_NONE || !is_array($datosGeoapify) ||
-        !isset($datosGeoapify["results"]) || !is_array($datosGeoapify["results"])
-    ) {
-        responder(502, ["error" => "El servicio de direcciones devolvió una respuesta inválida."]);
-    }
-
+    $respuesta = json_decode($contenido, true);
     $resultados = [];
-    foreach (array_slice($datosGeoapify["results"], 0, 5) as $ubicacion) {
-        if (
-            !is_array($ubicacion) || !is_string($ubicacion["formatted"] ?? null) ||
-            trim($ubicacion["formatted"]) === "" ||
-            !is_numeric($ubicacion["lat"] ?? null) || !is_numeric($ubicacion["lon"] ?? null)
-        ) {
-            continue;
-        }
-        $latitud = (float) $ubicacion["lat"];
-        $longitud = (float) $ubicacion["lon"];
-        if (!is_finite($latitud) || !is_finite($longitud) || abs($latitud) > 90 || abs($longitud) > 180) {
+    foreach ($respuesta["results"] ?? [] as $ubicacion) {
+        if (!isset($ubicacion["formatted"], $ubicacion["lat"], $ubicacion["lon"])) {
             continue;
         }
         $resultados[] = [
-            "direccion" => trim($ubicacion["formatted"]),
-            "latitud" => $latitud,
-            "longitud" => $longitud,
+            "direccion" => $ubicacion["formatted"],
+            "latitud" => (float) $ubicacion["lat"],
+            "longitud" => (float) $ubicacion["lon"],
         ];
     }
     responder(200, ["resultados" => $resultados]);
@@ -160,8 +129,8 @@ if ($accion === "buscar_ubicacion") {
 
 // La vista previa del recorrido tampoco necesita guardar datos en MySQL.
 if ($accion === "calcular_ruta") {
-    [$origenLatitud, $origenLongitud] = coordenadasDelFormulario("origen");
-    [$destinoLatitud, $destinoLongitud] = coordenadasDelFormulario("destino");
+    [$origenLatitud, $origenLongitud] = coordenadasDelFormulario("origen", false);
+    [$destinoLatitud, $destinoLongitud] = coordenadasDelFormulario("destino", false);
     require_once __DIR__ . "/rutas.php";
     try {
         responder(200, calcularRutaTraslado($origenLatitud, $origenLongitud, $destinoLatitud, $destinoLongitud));
