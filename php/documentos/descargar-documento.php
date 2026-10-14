@@ -37,11 +37,20 @@ if (!is_file($rutaFisica)) {
     exit("El archivo no existe.");
 }
 
-header("Content-Type: application/octet-stream");
+$extension = pathinfo($nombreArchivo, PATHINFO_EXTENSION);
+$nombreDescarga = trim($documento["titulo"]);
+
+if ($extension !== "" && strtolower(pathinfo($nombreDescarga, PATHINFO_EXTENSION)) !== strtolower($extension)) {
+    $nombreDescarga .= "." . $extension;
+}
+
+$nombreDescarga = str_replace(["\"", "\r", "\n"], "", basename($nombreDescarga));
+$tipoArchivo = function_exists("mime_content_type") ? mime_content_type($rutaFisica) : false;
+
+header("Content-Type: " . ($tipoArchivo ?: "application/octet-stream"));
 header(
-    'Content-Disposition: attachment; filename="'
-    . str_replace('"', '', basename($documento["titulo"]))
-    . '"'
+    'Content-Disposition: inline; filename="' . $nombreDescarga
+    . '"; filename*=UTF-8\'\'' . rawurlencode($nombreDescarga)
 );
 header("Content-Length: " . filesize($rutaFisica));
 

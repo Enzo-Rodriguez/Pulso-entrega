@@ -53,10 +53,17 @@ CREATE TABLE IF NOT EXISTS estado_documento (
 
 CREATE TABLE IF NOT EXISTS documento (
     id_documento INT AUTO_INCREMENT,
+    id_paciente INT NULL,
+    id_funcionario INT NULL,
+    id_estado_documento INT NULL,
     titulo VARCHAR(200) NOT NULL,
     ruta_archivo VARCHAR(255) NOT NULL,
     fecha_carga DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id_documento)
+    token_descarga CHAR(64) NULL UNIQUE,
+    PRIMARY KEY (id_documento),
+    FOREIGN KEY (id_paciente) REFERENCES paciente(id_paciente) ON DELETE SET NULL,
+    FOREIGN KEY (id_funcionario) REFERENCES funcionario(id_funcionario),
+    FOREIGN KEY (id_estado_documento) REFERENCES estado_documento(id_estado_documento)
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS estado_ambulancia (
@@ -196,6 +203,3 @@ INSERT INTO estado_traslado (nombre) VALUES
     ('Finalizado'),
     ('Cancelado')
 ON DUPLICATE KEY UPDATE nombre = VALUES(nombre);
-
-ALTER TABLE documento
-ADD COLUMN token_descarga CHAR(64) NULL UNIQUE;

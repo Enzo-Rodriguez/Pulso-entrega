@@ -1,0 +1,35 @@
+.pagina-qr {
+  max-width: 680px;
+}
+
+.tarjeta-qr {
+  text-align: center;
+}
+
+.tarjeta-qr h1 {
+  font-size: 34px;
+}
+
+.tarjeta-qr h2 {
+  margin-top: 22px;
+}
+
+.codigo-qr {
+  display: inline-block;
+  margin: 14px auto 20px;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 14px;
+  background: var(--blanco);
+}
+
+.codigo-qr img,
+.codigo-qr canvas {
+  display: block;
+  width: min(250px, 70vw);
+  height: auto;
+}
+
+.acciones-qr {
+  justify-content: center;
+}

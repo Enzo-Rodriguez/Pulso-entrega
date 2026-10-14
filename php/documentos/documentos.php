@@ -7,9 +7,11 @@ $resultadoDocumentos = $conexion->query(
   "SELECT
         documento.id_documento,
         documento.titulo,
-        documento.ruta_archivo,
+        CONCAT_WS(' ', persona.nombres, persona.apellidos) AS paciente,
         DATE_FORMAT(documento.fecha_carga, '%d/%m/%Y %H:%i') AS fecha_carga
      FROM documento
+     LEFT JOIN paciente ON paciente.id_paciente = documento.id_paciente
+     LEFT JOIN persona ON persona.id_persona = paciente.id_persona
      ORDER BY documento.id_documento DESC"
 );
 
@@ -34,17 +36,6 @@ function escapar($contenido): string
   <link rel="stylesheet" href="../../css/estilos.css">
   <link rel="icon" type="image/png" href="../../recursos/logo-pulsoA.png">
 </head>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
-<script>
-  document.querySelectorAll(".qr-documento").forEach(function(elemento) {
-    new QRCode(elemento, {
-      text: elemento.dataset.url,
-      width: 120,
-      height: 120
-    });
-  });
-</script>
 
 <body>
   <header class="barra-superior">
@@ -98,21 +89,23 @@ function escapar($contenido): string
           <thead>
             <tr>
               <th>Título</th>
+              <th>Paciente</th>
               <th>Fecha de carga</th>
-              <th>Archivo</th>
+              <th>Código QR</th>
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
             <?php if (count($documentos) === 0): ?>
               <tr>
-                <td colspan="4">No hay documentos registrados.</td>
+                <td colspan="5">No hay documentos registrados.</td>
               </tr>
             <?php endif; ?>
 
             <?php foreach ($documentos as $documento): ?>
               <tr>
                 <td><strong><?= escapar($documento["titulo"]) ?></strong></td>
+                <td><?= escapar($documento["paciente"] ?: "Sin asignar") ?></td>
                 <td><?= escapar($documento["fecha_carga"]) ?></td>
                 <td>
                   <a href="ver-qr.php?id=<?= (int) $documento["id_documento"] ?>">

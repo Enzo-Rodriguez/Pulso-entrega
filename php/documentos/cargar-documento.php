@@ -3,20 +3,35 @@ require_once "../conexion.php";
 
 $mensajeError = "";
 $titulo = "";
+$idPaciente = null;
 
 function escapar($contenido): string
 {
     return htmlspecialchars((string) ($contenido ?? ""), ENT_QUOTES, "UTF-8");
 }
 
+$resultadoPacientes = $conexion->query(
+    "SELECT paciente.id_paciente,
+            CONCAT_WS(' ', persona.nombres, persona.apellidos) AS nombre
+     FROM paciente
+     INNER JOIN persona ON persona.id_persona = paciente.id_persona
+     WHERE paciente.activo = 1
+     ORDER BY persona.nombres, persona.apellidos"
+);
+$pacientes = $resultadoPacientes->fetch_all(MYSQLI_ASSOC);
+$idsPacientes = array_map("intval", array_column($pacientes, "id_paciente"));
+
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $titulo = trim($_POST["titulo"] ?? "");
+    $idPaciente = filter_input(INPUT_POST, "id_paciente", FILTER_VALIDATE_INT);
     $archivo = $_FILES["documento"] ?? null;
 
     $extensionesPermitidas = ["pdf", "doc", "docx", "txt", "jpg", "jpeg", "png"];
     $tamanoMaximo = 10 * 1024 * 1024;
 
-    if ($titulo === "" || strlen($titulo) > 200) {
+    if ($idPaciente === false || $idPaciente === null || !in_array($idPaciente, $idsPacientes, true)) {
+        $mensajeError = "Seleccione un paciente válido.";
+    } elseif ($titulo === "" || strlen($titulo) > 200) {
         $mensajeError = "Ingrese un título de hasta 200 caracteres.";
     } elseif ($archivo === null || $archivo["error"] !== UPLOAD_ERR_OK) {
         $mensajeError = "Seleccione un archivo válido.";
@@ -48,11 +63,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         $tokenDescarga = bin2hex(random_bytes(32));
                         $guardarDocumento = $conexion->prepare(
                             "INSERT INTO documento
-                             (titulo, ruta_archivo, token_descarga)
-                             VALUES (?, ?, ?)",
+                             (id_paciente, titulo, ruta_archivo, token_descarga)
+                             VALUES (?, ?, ?, ?)",
                         );
 
-                        $guardarDocumento->bind_param("sss", $titulo, $rutaParaBase, $tokenDescarga);
+                        $guardarDocumento->bind_param("isss", $idPaciente, $titulo, $rutaParaBase, $tokenDescarga);
 
                         $guardarDocumento->execute();
                         $guardarDocumento->close();
@@ -115,6 +130,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <?php endif; ?>
 
             <form class="formulario" action="cargar-documento.php" method="post" enctype="multipart/form-data">
+                <label for="id_paciente">
+                    Paciente
+                    <select id="id_paciente" name="id_paciente" required>
+                        <option value="">Seleccionar paciente</option>
+                        <?php foreach ($pacientes as $paciente): ?>
+                            <option value="<?= (int) $paciente["id_paciente"] ?>" <?= (int) $idPaciente === (int) $paciente["id_paciente"] ? "selected" : "" ?>>
+                                <?= escapar($paciente["nombre"]) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </label>
+
                 <label for="titulo">
                     Título del documento
                     <input type="text" id="titulo" name="titulo" value="<?= escapar($titulo) ?>" maxlength="200" required>
@@ -132,7 +159,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             </form>
         </section>
     </main>
-    <script src="cargar_doc.js"></script>
 </body>
 
 </html>

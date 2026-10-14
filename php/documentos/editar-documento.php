@@ -16,11 +16,11 @@ if ($idDocumento === false || $idDocumento === null || $idDocumento < 1) {
 }
 
 $buscarDocumento = $conexion->prepare(
-    "SELECT titulo, ruta_archivo FROM documento WHERE id_documento = ?"
+    "SELECT id_paciente, titulo, ruta_archivo FROM documento WHERE id_documento = ?"
 );
 $buscarDocumento->bind_param("i", $idDocumento);
 $buscarDocumento->execute();
-$buscarDocumento->bind_result($tituloGuardado, $rutaArchivoActual);
+$buscarDocumento->bind_result($idPacienteGuardado, $tituloGuardado, $rutaArchivoActual);
 $documentoExiste = $buscarDocumento->fetch();
 $buscarDocumento->close();
 
@@ -30,9 +30,22 @@ if (!$documentoExiste) {
 }
 
 $titulo = $tituloGuardado;
+$idPaciente = (int) $idPacienteGuardado;
+
+$resultadoPacientes = $conexion->query(
+    "SELECT paciente.id_paciente,
+            CONCAT_WS(' ', persona.nombres, persona.apellidos) AS nombre
+     FROM paciente
+     INNER JOIN persona ON persona.id_persona = paciente.id_persona
+     WHERE paciente.activo = 1 OR paciente.id_paciente = " . $idPaciente . "
+     ORDER BY persona.nombres, persona.apellidos"
+);
+$pacientes = $resultadoPacientes->fetch_all(MYSQLI_ASSOC);
+$idsPacientes = array_map("intval", array_column($pacientes, "id_paciente"));
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $titulo = trim($_POST["titulo"] ?? "");
+    $idPaciente = filter_input(INPUT_POST, "id_paciente", FILTER_VALIDATE_INT);
     $archivo = $_FILES["documento"] ?? null;
     $hayArchivoNuevo = $archivo !== null && $archivo["error"] !== UPLOAD_ERR_NO_FILE;
 
@@ -42,7 +55,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         ? strtolower(pathinfo($archivo["name"], PATHINFO_EXTENSION))
         : "";
 
-    if ($titulo === "" || strlen($titulo) > 200) {
+    if ($idPaciente === false || $idPaciente === null || !in_array($idPaciente, $idsPacientes, true)) {
+        $mensajeError = "Seleccione un paciente válido.";
+    } elseif ($titulo === "" || strlen($titulo) > 200) {
         $mensajeError = "Ingrese un título de hasta 200 caracteres.";
     } elseif ($hayArchivoNuevo && $archivo["error"] !== UPLOAD_ERR_OK) {
         $mensajeError = "Seleccione un archivo válido.";
@@ -77,9 +92,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         if ($mensajeError === "") {
             try {
                 $actualizarDocumento = $conexion->prepare(
-                    "UPDATE documento SET titulo = ?, ruta_archivo = ? WHERE id_documento = ?"
+                    "UPDATE documento
+                     SET id_paciente = ?, titulo = ?, ruta_archivo = ?
+                     WHERE id_documento = ?"
                 );
-                $actualizarDocumento->bind_param("ssi", $titulo, $rutaParaBase, $idDocumento);
+                $actualizarDocumento->bind_param("issi", $idPaciente, $titulo, $rutaParaBase, $idDocumento);
                 $actualizarDocumento->execute();
                 $actualizarDocumento->close();
 
@@ -148,6 +165,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <?php endif; ?>
 
         <form class="formulario" action="editar-documento.php?id=<?= escapar($idDocumento) ?>" method="post" enctype="multipart/form-data">
+          <label for="id_paciente">
+            Paciente
+            <select id="id_paciente" name="id_paciente" required>
+              <option value="">Seleccionar paciente</option>
+              <?php foreach ($pacientes as $paciente): ?>
+                <option value="<?= (int) $paciente["id_paciente"] ?>" <?= (int) $idPaciente === (int) $paciente["id_paciente"] ? "selected" : "" ?>>
+                  <?= escapar($paciente["nombre"]) ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
+          </label>
+
           <label for="titulo">
             Título del documento
             <input id="titulo" type="text" name="titulo" value="<?= escapar($titulo) ?>" maxlength="200" required>
