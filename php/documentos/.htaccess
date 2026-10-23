@@ -1,0 +1,3 @@
+# Limites de carga solo para el modulo de documentos de PULSO.
+php_value upload_max_filesize 10M
+php_value post_max_size 12M
