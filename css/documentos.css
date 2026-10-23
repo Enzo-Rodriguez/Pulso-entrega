@@ -33,3 +33,242 @@
 .acciones-qr {
   justify-content: center;
 }
+
+.aviso-qr-local {
+  border: 1px solid #e4cf9d;
+  border-radius: 8px;
+  padding: 14px;
+  color: var(--amarillo-texto);
+  background: var(--amarillo-claro);
+  font-size: 14px;
+}
+
+.pagina-documentacion .estado-documento-error {
+  border-left-color: var(--rojo-texto);
+  color: var(--rojo-texto);
+  background: var(--rojo-claro);
+}
+
+.portal-documentacion .barra-documentacion {
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.portal-documentacion .etiqueta-documentacion {
+  border: 1px solid #c6e5df;
+  border-radius: 20px;
+  padding: 7px 12px;
+  color: var(--verde-oscuro);
+  background: var(--verde-claro);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.pagina-documentacion {
+  max-width: 1120px;
+}
+
+.pagina-documentacion .presentacion-documentacion {
+  max-width: 800px;
+  margin-bottom: 26px;
+}
+
+.pagina-documentacion h1,
+.pagina-documentacion h2,
+.pagina-documentacion .datos-documento {
+  overflow-wrap: anywhere;
+}
+
+.pagina-documentacion h1 {
+  font-size: clamp(28px, 4vw, 40px);
+}
+
+.pagina-documentacion .presentacion-documentacion > p:last-child {
+  margin-bottom: 0;
+}
+
+.pagina-documentacion .estado-documentacion {
+  margin-bottom: 20px;
+}
+
+.pagina-documentacion .mensaje-documento {
+  margin: 0 0 12px;
+  border: 1px solid var(--borde);
+  border-left: 4px solid var(--verde);
+  border-radius: 8px;
+  padding: 18px 20px;
+  color: var(--azul);
+  background: var(--blanco);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.pagina-documentacion .tarjeta-documento {
+  margin-bottom: 22px;
+  padding: 26px;
+}
+
+.pagina-documentacion .cabecera-documento {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.pagina-documentacion .cabecera-documento > div:first-child {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.pagina-documentacion .cabecera-documento h2 {
+  margin-bottom: 7px;
+}
+
+.pagina-documentacion .datos-documento {
+  margin: 0;
+  font-size: 14px;
+}
+
+.pagina-documentacion .acciones-documento {
+  min-width: 0;
+}
+
+.pagina-documentacion .boton {
+  min-height: 46px;
+  overflow-wrap: anywhere;
+}
+
+.pagina-documentacion .boton:focus-visible {
+  outline: 3px solid var(--azul);
+  outline-offset: 3px;
+}
+
+.pagina-documentacion .visor-documento {
+  overflow: hidden;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: #f7fafc;
+}
+
+.pagina-documentacion .visor-documento iframe {
+  display: block;
+  width: 100%;
+  height: 72vh;
+  min-height: 420px;
+  max-height: 900px;
+  border: 0;
+  background: var(--blanco);
+}
+
+.pagina-documentacion .visor-documento img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  max-height: 1000px;
+  margin: 0 auto;
+  object-fit: contain;
+  background: var(--blanco);
+}
+
+.pagina-documentacion .visor-documento pre {
+  max-height: 72vh;
+  margin: 0;
+  overflow: auto;
+  padding: 22px;
+  color: var(--texto);
+  background: var(--blanco);
+  font-family: ui-monospace, Consolas, "Courier New", monospace;
+  font-size: 14px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.pagina-documentacion .visor-documento > p {
+  margin: 0;
+  padding: 24px;
+  line-height: 1.7;
+}
+
+.pagina-documentacion .aviso-visor {
+  margin: 16px 0 0;
+  font-size: 13px;
+}
+
+.pagina-documentacion .tarjeta-encuesta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  border-top: 3px solid var(--verde);
+  background: #f5fbf9;
+}
+
+.pagina-documentacion .tarjeta-encuesta > div {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.pagina-documentacion .tarjeta-encuesta p:last-child {
+  margin-bottom: 0;
+}
+
+.pagina-documentacion .tarjeta-encuesta > .boton {
+  flex: 0 1 auto;
+  max-width: 100%;
+}
+
+.pagina-documentacion .ayuda-documentacion {
+  max-width: 820px;
+  margin-top: 28px;
+}
+
+.pagina-documentacion .ayuda-documentacion h2 {
+  font-size: 18px;
+}
+
+.pagina-documentacion .ayuda-documentacion p {
+  font-size: 14px;
+}
+
+.pagina-documentacion .nota-enlace {
+  font-size: 12px;
+}
+
+.pagina-documentacion [hidden] {
+  display: none !important;
+}
+
+@media (max-width: 600px) {
+  .pagina-documentacion .tarjeta-documento,
+  .pagina-documentacion .tarjeta-encuesta {
+    padding: 18px;
+  }
+
+  .pagina-documentacion .acciones-documento {
+    width: 100%;
+  }
+
+  .pagina-documentacion .acciones-documento > .boton {
+    flex: 1 1 130px;
+  }
+
+  .pagina-documentacion .tarjeta-encuesta > .boton {
+    width: 100%;
+  }
+
+  .pagina-documentacion .visor-documento iframe {
+    height: 65vh;
+    min-height: 340px;
+  }
+
+  .pagina-documentacion .visor-documento pre {
+    padding: 16px;
+    font-size: 13px;
+  }
+}

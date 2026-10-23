@@ -1,30 +1,71 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PULSO - Documentación</title>
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="referrer" content="no-referrer">
+    <title>PULSO - Tu documentación</title>
     <link rel="stylesheet" href="css/estilos.css">
+    <link rel="stylesheet" href="css/documentos.css">
     <link rel="icon" type="image/png" href="recursos/logo-pulsoA.png">
-</head>
-<body>
-    <main class="pagina">
-        <section class="encabezado-pagina">
-            <div>
-                <p class="subtitulo">Documentación destinada a pacientes</p>
-                <h1>Documentación y encuesta de satisfacción</h1>
-                <p>Acceda a la documentación médica y participe en la encuesta de satisfacción.</p>
-                <p>Si presenta dificultad para acceder a la documentación, por favor contacte con el equipo de administración médica.</p>
-            </div>
-        </section>
+    <script src="acceso-documentacion.js" defer></script>
+  </head>
+  <body class="portal-documentacion">
+    <header class="barra-superior barra-documentacion">
+      <div class="marca">
+        <img src="recursos/logo-pulsoA.png" alt="">
+        <span>PULSO</span>
+      </div>
+      <span class="etiqueta-documentacion">Portal del paciente</span>
+    </header>
+
+    <main class="pagina pagina-documentacion">
+      <section class="presentacion-documentacion" aria-labelledby="tituloDocumento">
+        <p class="subtitulo">Documentación para pacientes</p>
+        <h1 id="tituloDocumento">Tu documentación médica</h1>
+        <p>Consultá el documento que recibiste. Podés verlo aquí, abrirlo en otra pestaña o guardarlo en tu dispositivo.</p>
+      </section>
+
+      <div class="estado-documentacion">
+        <p id="estadoDocumento" class="mensaje-documento" role="status" aria-live="polite" aria-atomic="true">Estamos preparando tu documento...</p>
+        <button id="reintentarDocumento" class="boton boton-secundario" type="button" hidden>Volver a intentar</button>
+      </div>
+
+      <section id="contenidoDocumento" class="tarjeta tarjeta-documento" aria-labelledby="tituloVisor" hidden>
+        <div class="cabecera-documento">
+          <div>
+            <p class="subtitulo">Archivo recibido</p>
+            <h2 id="tituloVisor">Visualización del documento</h2>
+            <p id="datosDocumento" class="datos-documento"></p>
+          </div>
+          <div class="acciones acciones-documento">
+            <a id="abrirDocumento" class="boton" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">Abrir documento</a>
+            <a id="descargarDocumento" class="boton boton-secundario" download>Descargar</a>
+          </div>
+        </div>
+
+        <div id="visorDocumento" class="visor-documento" role="region" aria-label="Vista del documento"></div>
+        <p id="avisoVisor" class="aviso-visor">La vista previa depende del formato y del navegador. Si no ves el archivo, usá «Abrir documento» o «Descargar».</p>
+      </section>
+
+      <section id="encuestaDocumento" class="tarjeta tarjeta-encuesta" aria-labelledby="tituloEncuesta" hidden>
+        <div>
+          <p class="subtitulo">Encuesta de satisfacción</p>
+          <h2 id="tituloEncuesta">Tu opinión nos ayuda</h2>
+          <p>Contanos cómo fue tu experiencia para ayudarnos a mejorar la atención.</p>
+        </div>
+        <a class="boton boton-secundario" href="https://docs.google.com/forms/d/e/1FAIpQLSfJkMBk6zEfDX_BUSWaCrqtnWKvneUFvyJ63xo0dtO50H0YJw/viewform?usp=header" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer" title="La encuesta se abre en una pestaña nueva">Realizar encuesta de satisfacción</a>
+      </section>
+
+      <aside class="ayuda-documentacion" aria-labelledby="tituloAyuda">
+        <h2 id="tituloAyuda">¿Necesitás ayuda?</h2>
+        <p>Si no podés acceder al documento, contactá con el equipo de administración médica o con quien te entregó este enlace.</p>
+        <p class="nota-enlace">Este enlace permite acceder a tu documento. Compartilo solo si es necesario.</p>
+      </aside>
+
+      <noscript>
+        <p class="mensaje-documento">Para consultar el documento, activá JavaScript en tu navegador y volvé a abrir este enlace.</p>
+      </noscript>
     </main>
-    <section class="tarjeta">
-         <iframe src="https://ejemplo.com/" width="600" height="400" title="Descripción del contenido"></iframe>
-    </section>
-    <section class="tarjeta">
-        <button class="boton">
-            <a href="https://docs.google.com/forms/d/e/1FAIpQLSfJkMBk6zEfDX_BUSWaCrqtnWKvneUFvyJ63xo0dtO50H0YJw/viewform?usp=header">Realizar encuesta de satisfacción</a>
-        </button>
-    </section>
-</body>
+  </body>
 </html>

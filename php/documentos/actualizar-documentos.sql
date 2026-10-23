@@ -1,11 +1,15 @@
--- Ejecutar una sola vez si la base ya existia antes de asociar documentos a pacientes.
--- Las columnas antiguas quedan opcionales para no borrar informacion existente.
-ALTER TABLE documento
-    ADD COLUMN id_paciente INT NULL AFTER id_documento,
-    ADD COLUMN token_descarga CHAR(64) NULL AFTER fecha_carga,
-    MODIFY COLUMN id_funcionario INT NULL,
-    MODIFY COLUMN id_estado_documento INT NULL,
-    ADD UNIQUE INDEX uq_documento_token (token_descarga),
-    ADD CONSTRAINT fk_documento_paciente
-        FOREIGN KEY (id_paciente) REFERENCES paciente(id_paciente)
-        ON DELETE SET NULL;
+-- Agrega el enlace de acceso solo si falta. Se puede ejecutar nuevamente.
+-- No agrega la asignacion a pacientes ni borra columnas o datos anteriores.
+SET @actualizacion_documentos = IF(
+    EXISTS (
+        SELECT 1 FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'documento'
+          AND COLUMN_NAME = 'token_descarga'
+    ),
+    'SELECT ''La columna token_descarga ya existe'' AS resultado',
+    'ALTER TABLE documento ADD COLUMN token_descarga CHAR(64) NULL UNIQUE AFTER fecha_carga'
+);
+PREPARE actualizar_documentos FROM @actualizacion_documentos;
+EXECUTE actualizar_documentos;
+DEALLOCATE PREPARE actualizar_documentos;
