@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . "/../acceso.php";
+exigirAcceso(["Administrativo"]);
 
 require_once "../conexion.php";
 
@@ -86,6 +88,7 @@ $estados = $resultadoEstados->fetch_all(MYSQLI_ASSOC);
         <?php endif; ?>
 
         <form class="formulario formulario-dos-columnas" action="nueva-ambulancia.php" method="post">
+          <?= campoCsrf() ?>
           <label for="matricula">
             Matrícula
             <input id="matricula" type="text" name="matricula" maxlength="20" required>
@@ -123,5 +126,6 @@ $estados = $resultadoEstados->fetch_all(MYSQLI_ASSOC);
         </form>
       </section>
     </main>
+    <script src="../../acceso.js" data-modulo="ambulancias"></script>
   </body>
 </html>

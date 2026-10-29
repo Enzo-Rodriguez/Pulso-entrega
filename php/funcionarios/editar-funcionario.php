@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . "/../acceso.php";
+exigirAcceso(["Administrativo"]);
 
 require_once "../conexion.php";
 
@@ -135,6 +137,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
       <form class="formulario formulario-dos-columnas" action="editar-funcionario.php?id=<?= escapar($idFuncionario) ?>"
         method="post">
+        <?= campoCsrf() ?>
         <input type="hidden" name="id_funcionario" value="<?= escapar($idFuncionario) ?>">
 
         <label for="nombres">
@@ -198,6 +201,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       </form>
     </section>
   </main>
+  <script src="../../acceso.js" data-modulo="funcionarios"></script>
 </body>
 
 </html>

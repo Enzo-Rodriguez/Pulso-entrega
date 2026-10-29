@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . "/../acceso.php";
+exigirAcceso(["Administrativo"]);
 
 require_once "../conexion.php";
 
@@ -139,6 +141,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <?php endif; ?>
 
         <form class="formulario formulario-dos-columnas" action="editar-pacientes.php?id=<?= escapar($idPaciente) ?>" method="post">
+          <?= campoCsrf() ?>
           <label for="nombres">
             Nombre/s
             <input id="nombres" type="text" name="nombres" value="<?= escapar($paciente["nombres"]) ?>" required>
@@ -206,5 +209,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         </form>
       </section>
     </main>
+    <script src="../../acceso.js" data-modulo="pacientes"></script>
   </body>
 </html>

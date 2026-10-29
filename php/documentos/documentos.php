@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . "/../acceso.php";
+exigirAcceso(["Administrativo", "Médico", "Enfermería"]);
 
 require_once "../conexion.php";
 
@@ -59,9 +61,11 @@ function escapar($contenido): string
         <h1>Documentos</h1>
         <p>Documentos registrados en el sistema PULSO.</p>
       </div>
-      <div class="acciones">
-        <a class="boton" href="cargar-documento.php">Cargar documento</a>
-      </div>
+      <?php if (esAdministrativo()): ?>
+        <div class="acciones">
+          <a class="boton" href="cargar-documento.php">Cargar documento</a>
+        </div>
+      <?php endif; ?>
     </section>
 
     <section class="tarjeta">
@@ -88,13 +92,13 @@ function escapar($contenido): string
               <th>Título</th>
               <th>Fecha de carga</th>
               <th>Código QR</th>
-              <th>Acciones</th>
+              <?php if (esAdministrativo()): ?><th>Acciones</th><?php endif; ?>
             </tr>
           </thead>
           <tbody>
             <?php if (count($documentos) === 0): ?>
               <tr>
-                <td colspan="4">No hay documentos registrados.</td>
+                <td colspan="<?= esAdministrativo() ? 4 : 3 ?>">No hay documentos registrados.</td>
               </tr>
             <?php endif; ?>
 
@@ -107,12 +111,14 @@ function escapar($contenido): string
                     Ver código QR
                   </a>
                 </td>
+                <?php if (esAdministrativo()): ?>
                 <td>
                   <div class="acciones acciones-tabla">
                     <a class="boton boton-accion" href="editar-documento.php?id=<?= escapar($documento["id_documento"]) ?>">
                       Actualizar
                     </a>
                     <form action="eliminar-documento.php" method="post" onsubmit="return confirm('¿Eliminar este documento?');">
+                      <?= campoCsrf() ?>
                       <input type="hidden" name="id" value="<?= escapar($documento["id_documento"]) ?>">
                       <button class="boton-rojo boton-accion" type="submit" title="Eliminar documento" aria-label="Eliminar documento">
                         <img class="icono-boton" src="../../recursos/eliminar.png" alt="">
@@ -120,6 +126,7 @@ function escapar($contenido): string
                     </form>
                   </div>
                 </td>
+                <?php endif; ?>
               </tr>
             <?php endforeach; ?>
           </tbody>
@@ -127,6 +134,7 @@ function escapar($contenido): string
       </div>
     </section>
   </main>
+  <script src="../../acceso.js" data-modulo="documentos"></script>
 </body>
 
 </html>

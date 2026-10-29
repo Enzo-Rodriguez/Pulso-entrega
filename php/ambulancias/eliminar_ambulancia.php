@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . "/../acceso.php";
+exigirAcceso(["Administrativo"]);
 
 require_once "../conexion.php";
 

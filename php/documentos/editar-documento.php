@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . "/../acceso.php";
+exigirAcceso(["Administrativo"]);
 
 require_once "../conexion.php";
 
@@ -150,6 +152,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <?php endif; ?>
 
         <form class="formulario" action="editar-documento.php?id=<?= escapar($idDocumento) ?>" method="post" enctype="multipart/form-data">
+          <?= campoCsrf() ?>
           <label for="titulo">
             Título del documento
             <input id="titulo" type="text" name="titulo" value="<?= escapar($titulo) ?>" maxlength="200" required>
@@ -157,7 +160,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
           <p>
             <strong>Archivo actual:</strong>
-            <a href="../../<?= escapar($rutaArchivoActual) ?>" target="_blank" rel="noopener">
+            <a href="ver-qr.php?id=<?= (int) $idDocumento ?>" target="_blank" rel="noopener">
               <?= escapar(basename($rutaArchivoActual)) ?>
             </a>
           </p>
@@ -174,5 +177,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         </form>
       </section>
     </main>
+    <script src="../../acceso.js" data-modulo="documentos"></script>
   </body>
 </html>

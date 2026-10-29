@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . "/../acceso.php";
+exigirAcceso(["Administrativo"]);
 
 require_once "../conexion.php";
 
@@ -137,6 +139,7 @@ function escapar($valor): string
             action="editar-equipamientos.php?id_equipamiento=<?= urlencode($equipamiento["id_equipamiento"]) ?>"
             method="post"
         >
+            <?= campoCsrf() ?>
 
             <label for="id_equipamiento">
                 ID del equipamiento
@@ -186,5 +189,6 @@ function escapar($valor): string
         </form>
     </section>
 </main>
+  <script src="../../acceso.js" data-modulo="equipamientos"></script>
 </body>
 </html>

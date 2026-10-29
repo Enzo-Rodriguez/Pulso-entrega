@@ -35,7 +35,6 @@
           <p>Información de cada traslado y su mapa en una sola ficha.</p>
         </div>
         <div class="acciones">
-          <a class="boton boton-secundario" href="chofer.html">Vista del chofer</a>
           <button class="boton" id="botonNuevoTraslado" type="button" disabled>Nuevo traslado</button>
         </div>
       </section>
@@ -52,6 +51,19 @@
           <input name="origen_longitud" type="hidden">
           <input name="destino_latitud" type="hidden">
           <input name="destino_longitud" type="hidden">
+
+          <label for="ida_vuelta">
+            Tipo de recorrido
+            <select id="ida_vuelta" name="ida_vuelta" required aria-describedby="ayudaRecorrido">
+              <option value="0">Solo ida</option>
+              <option value="1">Ida y vuelta</option>
+            </select>
+          </label>
+          <label for="margen_minutos">
+            Margen de espera o descarga (minutos)
+            <input id="margen_minutos" name="margen_minutos" type="number" min="0" max="1440" step="1" value="0" required>
+          </label>
+          <p id="ayudaRecorrido" class="mapa-nota campo-completo">El traslado termina al llegar al destino.</p>
 
           <div class="campo-direccion">
             <label for="origen">
@@ -82,12 +94,16 @@
             <div id="mapaFormulario" class="mapa-formulario" aria-label="Mapa para elegir el origen y el destino"></div>
             <p id="mensajeRuta" class="instruccion-mapa" role="status">Elegí los dos puntos para calcular el recorrido.</p>
             <dl id="resumenRuta" class="resumen-ruta" hidden>
-              <div><dt>Distancia</dt><dd id="distanciaRuta"></dd></div>
-              <div><dt>Tiempo estimado</dt><dd id="duracionRuta"></dd></div>
-              <div><dt>Llegada estimada</dt><dd id="llegadaRuta"></dd></div>
+              <div><dt>Distancia total</dt><dd id="distanciaRuta"></dd></div>
+              <div><dt>Tiempo de ida</dt><dd id="duracionIdaRuta"></dd></div>
+              <div id="resumenRegresoRuta" hidden><dt>Tiempo de regreso</dt><dd id="duracionRegresoRuta"></dd></div>
+              <div><dt>Margen de espera o descarga</dt><dd id="margenRuta"></dd></div>
+              <div><dt>Tiempo total estimado</dt><dd id="duracionRuta"></dd></div>
+              <div><dt>Llegada estimada al destino</dt><dd id="llegadaRuta"></dd></div>
+              <div><dt id="tituloFinRuta">Finalización estimada</dt><dd id="finRuta"></dd></div>
             </dl>
             <p class="mapa-nota">Búsqueda de direcciones realizada con Geoapify. El mapa es opcional y los marcadores se pueden ajustar manualmente.</p>
-            <p class="mapa-nota">Recorrido calculado con OSRM. El tiempo es orientativo y no incluye las demoras propias del traslado.</p>
+            <p class="mapa-nota">OSRM calcula la conducción de cada tramo. El total suma el margen indicado, no contempla tráfico en tiempo real ni libera automáticamente la ambulancia.</p>
           </fieldset>
 
           <label for="id_tipo_carga">
@@ -117,7 +133,7 @@
 
           <label for="id_creador">
             Registrado por
-            <select id="id_creador" name="id_creador" required></select>
+            <select id="id_creador" name="id_creador" required disabled></select>
           </label>
 
           <label for="id_tipo_prioridad">
@@ -181,6 +197,8 @@
             </div>
 
             <dl class="datos-traslado">
+              <div><dt>Tipo de recorrido</dt><dd data-campo="tipo_recorrido"></dd></div>
+              <div data-dato-vuelta><dt>Regreso a</dt><dd data-campo="regreso"></dd></div>
               <div><dt>Tipo de carga</dt><dd data-campo="tipo_carga"></dd></div>
               <div><dt>Paciente</dt><dd data-campo="nombre_paciente"></dd></div>
               <div><dt>Ambulancia</dt><dd data-campo="matricula"></dd></div>
@@ -189,10 +207,16 @@
               <div><dt>Registrado por</dt><dd data-campo="nombre_creador"></dd></div>
               <div><dt>Salida prevista</dt><dd data-campo="salida_prevista"></dd></div>
               <div><dt>Salida real</dt><dd data-campo="salida_real"></dd></div>
-              <div><dt>Llegada real</dt><dd data-campo="llegada_real"></dd></div>
-              <div><dt>Distancia</dt><dd data-campo="distancia"></dd></div>
-              <div><dt>Tiempo estimado</dt><dd data-campo="duracion"></dd></div>
-              <div><dt>Llegada estimada</dt><dd data-campo="llegada_estimada"></dd></div>
+              <div data-dato-vuelta><dt>Llegada al destino</dt><dd data-campo="llegada_destino"></dd></div>
+              <div data-dato-vuelta><dt>Comienzo de vuelta</dt><dd data-campo="inicio_regreso"></dd></div>
+              <div><dt data-titulo="llegada_real">Llegada real</dt><dd data-campo="llegada_real"></dd></div>
+              <div><dt data-titulo="distancia">Distancia</dt><dd data-campo="distancia"></dd></div>
+              <div><dt>Tiempo de ida</dt><dd data-campo="duracion_ida"></dd></div>
+              <div data-tiempo-regreso><dt>Tiempo de regreso</dt><dd data-campo="duracion_regreso"></dd></div>
+              <div><dt>Margen de espera o descarga</dt><dd data-campo="margen"></dd></div>
+              <div><dt>Tiempo total estimado</dt><dd data-campo="duracion"></dd></div>
+              <div><dt>Llegada estimada al destino</dt><dd data-campo="llegada_estimada"></dd></div>
+              <div><dt data-titulo="fin_estimado">Finalización estimada</dt><dd data-campo="fin_estimado"></dd></div>
             </dl>
 
             <div class="descripcion-traslado">
@@ -225,13 +249,16 @@
     </template>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="../../acceso.js" data-modulo="traslados"></script>
     <script>
       const formulario = document.getElementById("formularioTraslado");
       const seccionFormulario = document.getElementById("seccionFormulario");
       const listaTraslados = document.getElementById("listaTraslados");
       const mensajeTraslados = document.getElementById("mensajeTraslados");
+      let sesionUsuario = null;
       let traslados = [];
       let opciones = {};
+      let permisos = { cancelar_en_curso: false };
       let mapaFormulario = null;
       let puntoActivo = "origen";
       let marcadoresFormulario = { origen: null, destino: null };
@@ -247,10 +274,17 @@
       const rutasCalculadas = new Map();
       let ultimoCalculoRuta = 0;
       let salidaRealFormulario = null;
+      let cambiandoEstado = false;
+      const ambulanciasOcupadas = new Map();
+      const conductoresOcupados = new Map();
+      const estadosActivos = ["En curso", "En destino", "En regreso", "En regreso por cancelación"];
 
       const clasesPorEstado = {
         "Programado": "estado-observacion",
         "En curso": "estado-alta",
+        "En destino": "estado-observacion",
+        "En regreso": "estado-alta",
+        "En regreso por cancelación": "estado-observacion",
         "Finalizado": "estado-estable",
         "Cancelado": "estado-inactivo"
       };
@@ -262,9 +296,60 @@
       };
 
       function mostrarMensaje(texto, esError = false) {
+        if (!sesionUsuario) return;
         mensajeTraslados.textContent = texto;
         mensajeTraslados.className = "mensaje-traslados estado " + (esError ? "estado-critico" : "estado-estable");
         mensajeTraslados.hidden = false;
+      }
+
+      function limpiarDatosSesion() {
+        sesionUsuario = null;
+        cerrarFormulario();
+        traslados = [];
+        opciones = {};
+        permisos = { cancelar_en_curso: false };
+        ambulanciasOcupadas.clear();
+        conductoresOcupados.clear();
+        rutasCalculadas.clear();
+        resultadosBusqueda = { origen: [], destino: [] };
+        ["origen", "destino"].forEach(limpiarResultadosBusqueda);
+        mapasFichas.forEach(mapa => mapa.remove());
+        mapasFichas = [];
+        mapasSeguimiento.clear();
+        fichasPorId.clear();
+        if (mapaFormulario) mapaFormulario.remove();
+        mapaFormulario = null;
+        versionFichas++;
+        listaTraslados.replaceChildren();
+        Array.from(formulario.elements).forEach(function (campo) {
+          if (campo.tagName === "SELECT") campo.replaceChildren();
+          if (campo.name) campo.value = "";
+        });
+        document.getElementById("cantidadTraslados").textContent = "Sesión no disponible.";
+        document.getElementById("botonNuevoTraslado").disabled = true;
+        mensajeTraslados.hidden = true;
+      }
+
+      async function leerRespuesta(respuesta) {
+        const resultado = await respuesta.json().catch(() => ({ error: "El servidor devolvió una respuesta no válida." }));
+        if ([401, 403].includes(respuesta.status)) {
+          limpiarDatosSesion();
+          window.manejarAccesoDenegado(respuesta, resultado);
+          throw new Error("La sesión no está disponible.");
+        }
+        if (!sesionUsuario) throw new Error("La sesión no está disponible.");
+        if (!respuesta.ok) throw new Error(resultado.error || "No se pudo completar la operación.");
+        return resultado;
+      }
+
+      function actualizarCreador() {
+        if (!sesionUsuario) return;
+        const funcionario = sesionUsuario.funcionario;
+        const editado = traslados.find(traslado => String(traslado.id_traslado) === formulario.elements.id_traslado.value);
+        const nombre = editado?.nombre_creador || [funcionario.nombre, funcionario.apellidos].filter(Boolean).join(" ");
+        const seleccion = formulario.elements.id_creador;
+        seleccion.replaceChildren(new Option(nombre, editado?.id_creador ?? funcionario.id_funcionario));
+        seleccion.disabled = true;
       }
 
       function llenarOpciones(nombreCampo, datos, valor, etiqueta, textoInicial) {
@@ -279,10 +364,109 @@
         llenarOpciones("id_tipo_carga", opciones.tipos_carga, "id_tipo_carga", dato => dato.nombre, "Seleccionar tipo");
         llenarOpciones("id_tipo_prioridad", opciones.prioridades, "id_tipo_prioridad", dato => dato.nombre, "Seleccionar prioridad");
         llenarOpciones("id_paciente", opciones.pacientes, "id_paciente", dato => dato.nombre, "Sin paciente");
-        llenarOpciones("matricula", opciones.ambulancias, "matricula", dato => dato.matricula + " · " + dato.marca + " " + dato.modelo, "Seleccionar ambulancia");
-        llenarOpciones("id_creador", opciones.funcionarios, "id_funcionario", dato => dato.nombre, "Seleccionar funcionario");
-        llenarOpciones("id_conductor", opciones.funcionarios.filter(dato => dato.tipo === "Conductor"), "id_funcionario", dato => dato.nombre, "Seleccionar conductor");
+        actualizarAmbulancias();
+        actualizarCreador();
+        actualizarConductores();
         llenarOpciones("id_acompanante", opciones.funcionarios, "id_funcionario", dato => dato.nombre, "Sin acompañante");
+      }
+
+      function actualizarAmbulancias() {
+        const seleccion = formulario.elements.matricula;
+        const elegida = seleccion.value;
+        const idActual = formulario.elements.id_traslado.value;
+        seleccion.replaceChildren(new Option("Seleccionar ambulancia", ""));
+        (opciones.ambulancias || []).forEach(function (ambulancia) {
+          const idOcupado = ambulanciasOcupadas.get(ambulancia.matricula.toUpperCase());
+          const ocupada = idOcupado != null && String(idOcupado) !== idActual;
+          const texto = ambulancia.matricula + " · " + ambulancia.marca + " " + ambulancia.modelo;
+          const opcion = new Option(texto + (ocupada ? " · Ocupada" : ""), ambulancia.matricula);
+          opcion.disabled = ocupada;
+          seleccion.add(opcion);
+        });
+        seleccion.value = elegida;
+        if (seleccion.selectedOptions[0]?.disabled) {
+          seleccion.value = "";
+          if (!seccionFormulario.hidden) mostrarMensaje("La ambulancia elegida está ocupada en otro traslado. Seleccioná otra.", true);
+        }
+      }
+
+      function actualizarConductores() {
+        const seleccion = formulario.elements.id_conductor;
+        const elegido = seleccion.value;
+        const idActual = String(formulario.elements.id_traslado.value);
+        seleccion.replaceChildren(new Option("Seleccionar conductor", ""));
+        (opciones.funcionarios || []).filter(funcionario => funcionario.tipo === "Conductor").forEach(function (conductor) {
+          const idOcupado = conductoresOcupados.get(String(conductor.id_funcionario));
+          const ocupado = idOcupado != null && String(idOcupado) !== idActual;
+          const opcion = new Option(conductor.nombre + (ocupado ? " · Ocupado" : ""), conductor.id_funcionario);
+          opcion.disabled = ocupado;
+          seleccion.add(opcion);
+        });
+        seleccion.value = elegido;
+        if (seleccion.selectedOptions[0]?.disabled) {
+          seleccion.value = "";
+          if (!seccionFormulario.hidden) mostrarMensaje("El conductor elegido está ocupado en otro traslado. Seleccioná otro.", true);
+        }
+      }
+
+      function actualizarTipoRecorrido() {
+        const idaYVuelta = formulario.elements.ida_vuelta.value === "1";
+        document.getElementById("ayudaRecorrido").textContent = idaYVuelta
+          ? "El regreso es al mismo origen. La ambulancia sigue ocupada durante la ida, la espera y la vuelta."
+          : "El traslado termina al llegar al destino.";
+        document.getElementById("resumenRegresoRuta").hidden = !idaYVuelta;
+        document.getElementById("tituloFinRuta").textContent = idaYVuelta ? "Regreso estimado al origen" : "Finalización estimada";
+      }
+
+      function siguienteAccion(traslado) {
+        if (traslado.estado === "Programado") return "iniciar";
+        if (traslado.estado === "En curso") return Number(traslado.ida_vuelta) === 1 ? "llegar_destino" : "finalizar";
+        if (traslado.estado === "En destino") return "iniciar_regreso";
+        if (["En regreso", "En regreso por cancelación"].includes(traslado.estado)) return "finalizar";
+        return "";
+      }
+
+      function tieneRegreso(traslado) {
+        return Number(traslado.ida_vuelta) === 1 || traslado.estado === "En regreso por cancelación" ||
+          (traslado.estado === "Cancelado" && Boolean(traslado.salida_real));
+      }
+
+      function textoSiguienteAccion(traslado) {
+        const accion = siguienteAccion(traslado);
+        if (accion === "iniciar") return "Iniciar";
+        if (accion === "llegar_destino") return "Llegué al destino";
+        if (accion === "iniciar_regreso") return "Comenzar vuelta";
+        if (accion === "finalizar") return tieneRegreso(traslado) ? "Llegué al origen" : "Finalizar";
+        return "";
+      }
+
+      function actualizarAccionesFicha(ficha, traslado) {
+        const programado = traslado.estado === "Programado";
+        const avanzar = ficha.querySelector('[data-accion="avanzar"]');
+        const accion = siguienteAccion(traslado);
+        const puedeCancelar = programado || (permisos.cancelar_en_curso === true &&
+          ["En curso", "En destino", "En regreso"].includes(traslado.estado));
+        ficha.querySelector(".acciones-traslado").hidden = !programado && !accion;
+        ficha.querySelector('[data-accion="editar"]').hidden = !programado;
+        ficha.querySelector('[data-accion="cancelar"]').hidden = !puedeCancelar;
+        avanzar.hidden = !accion;
+        avanzar.textContent = textoSiguienteAccion(traslado);
+        ficha.querySelectorAll(".acciones-traslado button").forEach(boton => { boton.disabled = cambiandoEstado; });
+      }
+
+      function actualizarRecorridoFicha(ficha, traslado) {
+        const idaYVuelta = Number(traslado.ida_vuelta) === 1;
+        const regresa = tieneRegreso(traslado);
+        ponerTexto(ficha, "tipo_recorrido", idaYVuelta ? "Ida y vuelta" : "Solo ida");
+        ponerTexto(ficha, "regreso", traslado.origen);
+        ficha.querySelectorAll("[data-dato-vuelta]").forEach(dato => { dato.hidden = !regresa; });
+        ponerTexto(ficha, "llegada_destino", traslado.llegada_destino || (traslado.estado === "Cancelado" ? "Sin llegada registrada" : "Pendiente"));
+        ponerTexto(ficha, "inicio_regreso", traslado.inicio_regreso || "Pendiente");
+        ficha.querySelector('[data-titulo="llegada_real"]').textContent = regresa ? "Llegada al origen" : "Llegada al destino";
+        ficha.querySelector('[data-titulo="distancia"]').textContent = "Distancia total";
+        ficha.querySelector('[data-tiempo-regreso]').hidden = !idaYVuelta;
+        ficha.querySelector('[data-titulo="fin_estimado"]').textContent = regresa ? "Regreso estimado al origen" : "Finalización estimada";
+        actualizarTiemposFicha(ficha, traslado);
       }
 
       function actualizarCampoPaciente() {
@@ -294,24 +478,34 @@
       }
 
       function abrirFormulario(traslado = null) {
+        if (!sesionUsuario) return;
+        if (traslado && traslado.estado !== "Programado") {
+          mostrarMensaje("Solo se pueden modificar traslados Programados, antes de iniciar.", true);
+          return;
+        }
         formulario.reset();
         ["origen", "destino"].forEach(limpiarResultadosBusqueda);
         salidaRealFormulario = traslado?.salida_real ? traslado.salida_calculo : null;
         formulario.elements.id_traslado.value = traslado?.id_traslado ?? "";
-        formulario.elements.id_creador.disabled = Boolean(traslado);
+        formulario.elements.id_creador.disabled = true;
+        actualizarAmbulancias();
         document.getElementById("tituloFormulario").textContent = traslado ? "Actualizar traslado n.º " + traslado.id_traslado : "Nuevo traslado";
         document.getElementById("botonGuardarTraslado").textContent = traslado ? "Guardar cambios" : "Registrar traslado";
 
         if (traslado) {
-          ["origen", "destino", "descripcion_carga", "matricula", "id_tipo_carga", "id_paciente",
-            "id_creador", "id_conductor", "id_acompanante", "id_tipo_prioridad"].forEach(function (campo) {
+          ["origen", "destino", "descripcion_carga", "matricula", "ida_vuelta", "margen_minutos", "id_tipo_carga", "id_paciente",
+            "id_conductor", "id_acompanante", "id_tipo_prioridad"].forEach(function (campo) {
             formulario.elements[campo].value = traslado[campo] ?? "";
           });
           formulario.elements.salida_prevista.value = traslado.salida_prevista_formulario;
         }
 
+        actualizarCreador();
         actualizarCampoPaciente();
+        actualizarTipoRecorrido();
+        actualizarAmbulancias();
         seccionFormulario.hidden = false;
+        actualizarConductores();
         prepararMapaFormulario(traslado);
         seccionFormulario.scrollIntoView({ behavior: "smooth", block: "start" });
         formulario.elements.origen.focus({ preventScroll: true });
@@ -340,6 +534,7 @@
       }
 
       async function buscarDireccion(punto, boton) {
+        if (!sesionUsuario) return;
         const direccion = formulario.elements[punto].value.trim();
         limpiarResultadosBusqueda(punto);
         if (direccion.length < 3) {
@@ -352,11 +547,12 @@
         const datos = new FormData();
         datos.set("accion", "buscar_ubicacion");
         datos.set("direccion", direccion);
+        datos.set("csrf", sesionUsuario.csrf);
 
         try {
           const respuesta = await fetch("traslados.php", { method: "POST", body: datos });
-          const resultado = await respuesta.json();
-          if (!respuesta.ok) throw new Error(resultado.error || "No se pudo buscar la dirección.");
+          const resultado = await leerRespuesta(respuesta);
+          if (!sesionUsuario) return;
           if (!resultado.resultados.length) throw new Error("Geoapify no encontró esa dirección.");
 
           resultadosBusqueda[punto] = resultado.resultados;
@@ -380,12 +576,14 @@
         if (!ubicacion) return;
 
         formulario.elements[punto].value = ubicacion.direccion;
-        formulario.elements[punto + "_latitud"].value = Number(ubicacion.latitud).toFixed(7);
-        formulario.elements[punto + "_longitud"].value = Number(ubicacion.longitud).toFixed(7);
         if (typeof L !== "undefined" && mapaFormulario) {
           marcarPuntoFormulario(punto, [ubicacion.latitud, ubicacion.longitud]);
           const puntos = Object.values(marcadoresFormulario).filter(Boolean).map(marcador => marcador.getLatLng());
           mapaFormulario.fitBounds(puntos, { padding: [45, 45], maxZoom: 16 });
+        } else {
+          limpiarRutaFormulario();
+          formulario.elements[punto + "_latitud"].value = Number(ubicacion.latitud).toFixed(7);
+          formulario.elements[punto + "_longitud"].value = Number(ubicacion.longitud).toFixed(7);
         }
         mostrarMensaje("Ubicación seleccionada con Geoapify.");
       }
@@ -420,31 +618,73 @@
       }
 
       function formatearLlegada(fechaSalida, segundos) {
+        if (!fechaSalida) return "Pendiente de cálculo";
         const fecha = new Date(fechaSalida);
-        if (segundos == null || !Number.isFinite(Number(segundos)) || Number.isNaN(fecha.getTime())) return "Pendiente de cálculo";
+        if (segundos == null || segundos === "" || !Number.isFinite(Number(segundos)) || Number(segundos) < 0 || Number.isNaN(fecha.getTime())) return "Pendiente de cálculo";
         // Usa los mismos minutos redondeados que se muestran en el tiempo estimado.
         return new Date(fecha.getTime() + Math.ceil(Number(segundos) / 60) * 60000).toLocaleString("es-UY", { dateStyle: "short", timeStyle: "short" });
+      }
+
+      function tiemposDelRecorrido(traslado, recorrido) {
+        // Redondeamos cada tramo a minutos para que el total coincida con lo mostrado.
+        const minutosDeTramo = segundos => typeof segundos === "number" && Number.isFinite(segundos) && segundos >= 0
+          ? Math.ceil(segundos / 60) : null;
+        const ida = minutosDeTramo(recorrido?.duracion_ida_segundos);
+        const regreso = Number(traslado.ida_vuelta) === 1 ? minutosDeTramo(recorrido?.duracion_regreso_segundos) : 0;
+        const margen = Number.isInteger(traslado.margen_minutos) && traslado.margen_minutos >= 0 && traslado.margen_minutos <= 1440
+          ? traslado.margen_minutos : null;
+        const total = [ida, regreso, margen].every(valor => valor !== null) ? (ida + regreso + margen) * 60 : null;
+        return { ida: ida === null ? null : ida * 60, regreso: regreso === null ? null : regreso * 60, margen, total };
+      }
+
+      function estimarFin(traslado, tiempos) {
+        if (traslado.estado === "En regreso por cancelación" || traslado.estado === "Cancelado") return "No estimado por cancelación";
+        if (traslado.estado === "En regreso") return formatearLlegada(traslado.inicio_regreso_calculo, tiempos.regreso);
+        if (traslado.estado === "En destino") {
+          const esperaYRegreso = tiempos.margen !== null && tiempos.regreso !== null ? tiempos.margen * 60 + tiempos.regreso : null;
+          return formatearLlegada(traslado.llegada_destino_calculo, esperaYRegreso);
+        }
+        return formatearLlegada(traslado.salida_calculo || traslado.salida_prevista_formulario, tiempos.total);
+      }
+
+      function actualizarTiemposFicha(ficha, traslado) {
+        const recorrido = rutasCalculadas.get(claveUbicaciones(traslado));
+        const tiempos = tiemposDelRecorrido(traslado, recorrido);
+        ponerTexto(ficha, "distancia", formatearDistancia(recorrido?.distancia_metros));
+        ponerTexto(ficha, "duracion_ida", formatearDuracion(tiempos.ida));
+        ponerTexto(ficha, "duracion_regreso", formatearDuracion(tiempos.regreso));
+        ponerTexto(ficha, "margen", tiempos.margen === null ? "Sin dato" : tiempos.margen + " min");
+        ponerTexto(ficha, "duracion", formatearDuracion(tiempos.total));
+        ponerTexto(ficha, "llegada_estimada", formatearLlegada(traslado.salida_calculo || traslado.salida_prevista_formulario, tiempos.ida));
+        ponerTexto(ficha, "fin_estimado", estimarFin(traslado, tiempos));
+      }
+
+      function ubicacionesDelFormulario() {
+        return Object.fromEntries(["origen_latitud", "origen_longitud", "destino_latitud", "destino_longitud", "ida_vuelta"]
+          .map(campo => [campo, formulario.elements[campo].value]));
       }
 
       function claveUbicaciones(traslado) {
         const origen = coordenadasDeTraslado(traslado, "origen");
         const destino = coordenadasDeTraslado(traslado, "destino");
-        return origen && destino ? [...origen, ...destino].map(valor => valor.toFixed(7)).join(",") : null;
+        return origen && destino ? [...origen, ...destino].map(valor => valor.toFixed(7)).join(",") + ":" + Number(traslado.ida_vuelta || 0) : null;
       }
 
       // Los recorridos solo se mantienen mientras esta página está abierta.
       async function solicitarRuta(datos, controlador = null) {
+        if (!sesionUsuario) throw new Error("La sesión no está disponible.");
+        datos.set("csrf", sesionUsuario.csrf);
         if (Date.now() - ultimoCalculoRuta < 1100) throw new Error("Esperá un segundo antes de calcular otro recorrido.");
         ultimoCalculoRuta = Date.now();
         const respuesta = await fetch("traslados.php", { method: "POST", body: datos, signal: controlador?.signal });
-        const resultado = await respuesta.json();
-        if (!respuesta.ok) throw new Error(resultado.error || "No se pudo calcular el recorrido.");
+        const resultado = await leerRespuesta(respuesta);
         if (!rutaDelTraslado(resultado)) throw new Error("No se recibió un recorrido válido.");
         return resultado;
       }
 
       async function calcularRutaFicha(traslado, boton) {
-        if (rutasCalculadas.has(claveUbicaciones(traslado))) {
+        const clave = claveUbicaciones(traslado);
+        if (rutasCalculadas.has(clave)) {
           mostrarFichas();
           return;
         }
@@ -452,10 +692,11 @@
         boton.textContent = "Calculando...";
         const datos = new FormData();
         datos.set("accion", "calcular_ruta");
-        ["origen_latitud", "origen_longitud", "destino_latitud", "destino_longitud"].forEach(campo => datos.set(campo, traslado[campo]));
+        ["origen_latitud", "origen_longitud", "destino_latitud", "destino_longitud", "ida_vuelta"].forEach(campo => datos.set(campo, traslado[campo]));
         try {
           const resultado = await solicitarRuta(datos);
-          rutasCalculadas.set(claveUbicaciones(traslado), resultado);
+          if (!sesionUsuario) return;
+          rutasCalculadas.set(clave, resultado);
           mostrarFichas();
         } catch (error) {
           mostrarMensaje(error.message, true);
@@ -467,9 +708,16 @@
 
       function actualizarLlegadaFormulario() {
         const salida = salidaRealFormulario || formulario.elements.salida_prevista.value;
-        document.getElementById("llegadaRuta").textContent = rutaFormulario && salida
-          ? formatearLlegada(salida, rutaFormulario.duracion_segundos)
-          : "Completá la salida prevista";
+        const margen = formulario.elements.margen_minutos;
+        const traslado = { ...ubicacionesDelFormulario(), margen_minutos: margen.value === "" ? null : Number(margen.value),
+          salida_calculo: salida, estado: "Programado" };
+        const tiempos = tiemposDelRecorrido(traslado, rutaFormulario);
+        document.getElementById("duracionIdaRuta").textContent = formatearDuracion(tiempos.ida);
+        document.getElementById("duracionRegresoRuta").textContent = formatearDuracion(tiempos.regreso);
+        document.getElementById("margenRuta").textContent = tiempos.margen === null ? "Ingresá un margen válido" : tiempos.margen + " min";
+        document.getElementById("duracionRuta").textContent = formatearDuracion(tiempos.total);
+        document.getElementById("llegadaRuta").textContent = salida ? formatearLlegada(salida, tiempos.ida) : "Completá la salida prevista";
+        document.getElementById("finRuta").textContent = salida ? estimarFin(traslado, tiempos) : "Completá la salida prevista";
       }
 
       function actualizarBotonRuta() {
@@ -479,7 +727,7 @@
       function limpiarRutaFormulario() {
         consultaRuta?.abort();
         consultaRuta = null;
-        if (capaRutaFormulario) mapaFormulario.removeLayer(capaRutaFormulario);
+        if (capaRutaFormulario && mapaFormulario) mapaFormulario.removeLayer(capaRutaFormulario);
         capaRutaFormulario = null;
         rutaFormulario = null;
         document.getElementById("resumenRuta").hidden = true;
@@ -494,10 +742,9 @@
         if (capaRutaFormulario) mapaFormulario.removeLayer(capaRutaFormulario);
         capaRutaFormulario = L.geoJSON(ruta, { style: { color: "#087e8b", weight: 5, opacity: 0.85 } }).addTo(mapaFormulario);
         rutaFormulario = datos;
-        const ubicaciones = Object.fromEntries(["origen_latitud", "origen_longitud", "destino_latitud", "destino_longitud"].map(campo => [campo, formulario.elements[campo].value]));
+        const ubicaciones = ubicacionesDelFormulario();
         rutasCalculadas.set(claveUbicaciones(ubicaciones), datos);
         document.getElementById("distanciaRuta").textContent = formatearDistancia(datos.distancia_metros);
-        document.getElementById("duracionRuta").textContent = formatearDuracion(datos.duracion_segundos);
         document.getElementById("resumenRuta").hidden = false;
         document.getElementById("mensajeRuta").textContent = "Recorrido calculado con OSRM.";
         actualizarLlegadaFormulario();
@@ -516,7 +763,7 @@
         document.getElementById("mensajeRuta").textContent = "Calculando el recorrido por las calles...";
         const datos = new FormData();
         datos.set("accion", "calcular_ruta");
-        ["origen_latitud", "origen_longitud", "destino_latitud", "destino_longitud"].forEach(campo => datos.set(campo, formulario.elements[campo].value));
+        Object.entries(ubicacionesDelFormulario()).forEach(([campo, valor]) => datos.set(campo, valor));
         try {
           const resultado = await solicitarRuta(datos, controlador);
           if (consultaRuta !== controlador || seccionFormulario.hidden) return;
@@ -637,7 +884,8 @@
         elegirPuntoActivo(marcadoresFormulario.origen && !marcadoresFormulario.destino ? "destino" : "origen");
         requestAnimationFrame(function () {
           mapaFormulario.invalidateSize();
-          if (traslado && rutaDelTraslado(traslado)) mostrarRutaFormulario(traslado);
+          const recorrido = rutasCalculadas.get(claveUbicaciones(ubicacionesDelFormulario()));
+          if (recorrido) mostrarRutaFormulario(recorrido);
           else if (puntos.length) mapaFormulario.fitBounds(puntos, { padding: [45, 45], maxZoom: 16 });
         });
       }
@@ -689,9 +937,7 @@
         ponerTexto(ficha, "salida_prevista", traslado.salida_prevista);
         ponerTexto(ficha, "salida_real", traslado.salida_real || "Pendiente");
         ponerTexto(ficha, "llegada_real", traslado.llegada_real || "Pendiente");
-        ponerTexto(ficha, "distancia", formatearDistancia(traslado.distancia_metros));
-        ponerTexto(ficha, "duracion", formatearDuracion(traslado.duracion_segundos));
-        ponerTexto(ficha, "llegada_estimada", traslado.llegada_estimada || "Pendiente de cálculo");
+        actualizarRecorridoFicha(ficha, traslado);
         ponerTexto(ficha, "descripcion_carga", traslado.descripcion_carga || "");
         ficha.querySelector(".descripcion-traslado").hidden = !traslado.descripcion_carga;
 
@@ -717,22 +963,23 @@
           ? "Puntos de ejemplo para probar el diseño de la ficha."
           : tieneUbicaciones
             ? rutaDelTraslado(traslado)
-              ? "O: origen · D: destino. Recorrido calculado con OSRM; tiempo orientativo."
+              ? "O: origen · D: destino. Conducción calculada con OSRM y margen agregado al total. Son tiempos orientativos; la llegada se confirma manualmente."
               : "O: origen · D: destino. El recorrido todavía no fue calculado."
             : "Este registro se guardó sin puntos en el mapa.";
 
-        if (ejemplo || traslado.estado === "Cancelado") {
+        if (ejemplo) {
           acciones.hidden = true;
         } else {
           ficha.querySelector('[data-accion="editar"]').addEventListener("click", () => abrirFormulario(traslados.find(dato => dato.id_traslado == traslado.id_traslado) || traslado));
-          botonAvanzar.hidden = traslado.estado === "Finalizado";
-          botonCancelar.hidden = traslado.estado === "Finalizado";
-          botonAvanzar.textContent = traslado.estado === "Programado" ? "Iniciar" : "Finalizar";
+          actualizarAccionesFicha(ficha, traslado);
           botonAvanzar.addEventListener("click", function () {
             const actual = traslados.find(dato => dato.id_traslado == traslado.id_traslado) || traslado;
-            cambiarEstado(actual.estado === "Programado" ? "iniciar" : "finalizar", actual);
+            const accion = siguienteAccion(actual);
+            if (accion) cambiarEstado(accion, actual);
           });
-          botonCancelar.addEventListener("click", () => cambiarEstado("cancelar", traslado));
+          botonCancelar.addEventListener("click", function () {
+            cambiarEstado("cancelar", traslados.find(dato => dato.id_traslado == traslado.id_traslado) || traslado);
+          });
         }
 
         listaTraslados.append(ficha);
@@ -740,6 +987,7 @@
       }
 
       function mostrarFichas() {
+        if (!sesionUsuario) return;
         versionFichas++;
         mapasFichas.forEach(mapa => mapa.remove());
         mapasFichas = [];
@@ -757,12 +1005,12 @@
             nombre_conductor: "Por asignar", nombre_acompanante: "Por asignar", nombre_creador: "Equipo PULSO",
             salida_prevista: "Por definir", salida_real: null, llegada_real: null,
             descripcion_carga: "Traslado de ejemplo para probar el diseño de la ficha.",
-            prioridad: "Media", estado: "Programado"
+            prioridad: "Media", estado: "Programado", ida_vuelta: 0, margen_minutos: 0
           }, true);
         } else {
           traslados.forEach(function (traslado) {
             const recorrido = rutasCalculadas.get(claveUbicaciones(traslado));
-            crearFicha(recorrido ? { ...traslado, ...recorrido, llegada_estimada: formatearLlegada(traslado.salida_calculo || traslado.salida_prevista_formulario, recorrido.duracion_segundos) } : traslado);
+            crearFicha(recorrido ? { ...traslado, ...recorrido } : traslado);
           });
         }
         actualizarSeguimiento();
@@ -770,43 +1018,57 @@
 
       // Actualiza solo el GPS y los estados; no toca el formulario ni recarga los mapas.
       async function actualizarSeguimiento() {
-        if (consultandoSeguimiento || document.hidden) return;
+        if (!sesionUsuario || consultandoSeguimiento || document.hidden) return;
         consultandoSeguimiento = true;
         const versionConsultada = versionFichas;
         const controlador = new AbortController();
         const tiempoLimite = setTimeout(() => controlador.abort(), 12000);
         try {
           const respuesta = await fetch("seguimiento.php", { cache: "no-store", signal: controlador.signal });
-          const datos = await respuesta.json();
-          if (!respuesta.ok) throw new Error(datos.error || "No se pudo consultar el seguimiento.");
+          const datos = await leerRespuesta(respuesta);
           if (versionConsultada !== versionFichas) return;
+          ambulanciasOcupadas.clear();
+          conductoresOcupados.clear();
+          datos.seguimientos.forEach(function (seguimiento) {
+            if (seguimiento.matricula && estadosActivos.includes(seguimiento.estado)) {
+              ambulanciasOcupadas.set(seguimiento.matricula.toUpperCase(), seguimiento.id_traslado);
+            }
+            if (seguimiento.id_conductor != null && estadosActivos.includes(seguimiento.estado)) {
+              conductoresOcupados.set(String(seguimiento.id_conductor), seguimiento.id_traslado);
+            }
+          });
+          actualizarAmbulancias();
+          actualizarConductores();
           datos.seguimientos.forEach(function (seguimiento) {
             const id = String(seguimiento.id_traslado);
             const ficha = fichasPorId.get(id);
             const traslado = traslados.find(dato => String(dato.id_traslado) === id);
             if (!ficha || !traslado) return;
             traslado.estado = seguimiento.estado;
+            traslado.ida_vuelta = seguimiento.ida_vuelta;
+            traslado.margen_minutos = seguimiento.margen_minutos;
             traslado.salida_real = seguimiento.salida_real;
             traslado.llegada_real = seguimiento.llegada_real;
+            traslado.llegada_destino = seguimiento.llegada_destino;
+            traslado.inicio_regreso = seguimiento.inicio_regreso;
+            traslado.llegada_destino_calculo = seguimiento.llegada_destino_calculo;
+            traslado.inicio_regreso_calculo = seguimiento.inicio_regreso_calculo;
             traslado.salida_calculo = seguimiento.salida_calculo;
             if (!seccionFormulario.hidden && formulario.elements.id_traslado.value === id) {
-              salidaRealFormulario = seguimiento.salida_real ? seguimiento.salida_calculo : null;
-              actualizarLlegadaFormulario();
+              if (seguimiento.estado !== "Programado") {
+                cerrarFormulario();
+                mostrarMensaje("El traslado ya cambió de estado. Solo se puede modificar antes de iniciar.", true);
+              }
             }
             traslado.id_conductor = seguimiento.id_conductor;
             if (seguimiento.nombre_conductor) traslado.nombre_conductor = seguimiento.nombre_conductor;
             ["salida_real", "llegada_real"].forEach(campo => ponerTexto(ficha, campo, traslado[campo] || "Pendiente"));
+            actualizarRecorridoFicha(ficha, traslado);
             ponerTexto(ficha, "nombre_conductor", traslado.nombre_conductor);
-            const recorrido = rutasCalculadas.get(claveUbicaciones(traslado));
-            if (recorrido) ponerTexto(ficha, "llegada_estimada", formatearLlegada(traslado.salida_calculo, recorrido.duracion_segundos));
             const estado = ficha.querySelector('[data-campo="estado"]');
             estado.textContent = seguimiento.estado;
             estado.className = "estado " + (clasesPorEstado[seguimiento.estado] || "estado-inactivo");
-            ficha.querySelector(".acciones-traslado").hidden = seguimiento.estado === "Cancelado";
-            const cerrado = !["Programado", "En curso"].includes(seguimiento.estado);
-            ficha.querySelector('[data-accion="avanzar"]').hidden = cerrado;
-            ficha.querySelector('[data-accion="avanzar"]').textContent = seguimiento.estado === "Programado" ? "Iniciar" : "Finalizar";
-            ficha.querySelector('[data-accion="cancelar"]').hidden = cerrado;
+            actualizarAccionesFicha(ficha, traslado);
             const entrada = mapasSeguimiento.get(id);
             const nota = ficha.querySelector('[data-campo="gps"]');
             if (seguimiento.latitud === null || seguimiento.longitud === null) {
@@ -817,7 +1079,7 @@
             }
             const coordenadas = [Number(seguimiento.latitud), Number(seguimiento.longitud)];
             if (!coordenadas.every(Number.isFinite) || Math.abs(coordenadas[0]) > 90 || Math.abs(coordenadas[1]) > 180) return;
-            const reciente = seguimiento.estado === "En curso" && Number(seguimiento.segundos_desde_registro) <= 45;
+            const reciente = estadosActivos.includes(seguimiento.estado) && Number(seguimiento.segundos_desde_registro) <= 45;
             const texto = (reciente ? "GPS del chofer" : "Última ubicación conocida") + " · " + seguimiento.fecha_registro +
               " · precisión aproximada: " + Math.round(Number(seguimiento.precision_metros)) + " m.";
             nota.textContent = texto + (reciente ? "" : " No indica seguimiento activo.");
@@ -847,25 +1109,64 @@
       }
 
       async function cargarDatos() {
-        const respuesta = await fetch("traslados.php");
-        const datos = await respuesta.json();
-        if (!respuesta.ok) throw new Error(datos.error || "No se pudieron cargar los traslados.");
+        if (!sesionUsuario) return;
+        const respuesta = await fetch("traslados.php", { cache: "no-store" });
+        const datos = await leerRespuesta(respuesta);
+        if (!sesionUsuario) return;
         traslados = datos.traslados;
         opciones = datos.opciones;
+        permisos = datos.permisos || { cancelar_en_curso: false };
+        ambulanciasOcupadas.clear();
+        opciones.ambulancias.forEach(function (ambulancia) {
+          if (ambulancia.id_traslado_ocupado != null) ambulanciasOcupadas.set(ambulancia.matricula.toUpperCase(), ambulancia.id_traslado_ocupado);
+        });
+        conductoresOcupados.clear();
+        opciones.funcionarios.forEach(function (funcionario) {
+          if (funcionario.tipo === "Conductor" && funcionario.id_traslado_ocupado != null) {
+            conductoresOcupados.set(String(funcionario.id_funcionario), funcionario.id_traslado_ocupado);
+          }
+        });
+        // Una acción en otra ficha no borra lo que se está escribiendo.
+        const valoresFormulario = {};
+        if (!seccionFormulario.hidden) {
+          Array.from(formulario.elements).forEach(function (campo) {
+            if (campo.name) valoresFormulario[campo.name] = campo.value;
+          });
+        }
         cargarOpciones();
+        Object.keys(valoresFormulario).forEach(campo => { formulario.elements[campo].value = valoresFormulario[campo]; });
+        actualizarCampoPaciente();
+        actualizarAmbulancias();
+        actualizarConductores();
         mostrarFichas();
         document.getElementById("botonNuevoTraslado").disabled = false;
       }
 
       async function enviarFormulario(datos) {
+        if (!sesionUsuario) throw new Error("La sesión no está disponible.");
+        datos.set("csrf", sesionUsuario.csrf);
         const respuesta = await fetch("traslados.php", { method: "POST", body: datos });
-        const resultado = await respuesta.json();
-        if (!respuesta.ok) throw new Error(resultado.error || "No se pudo guardar el traslado.");
-        return resultado;
+        return leerRespuesta(respuesta);
       }
 
       async function cambiarEstado(accion, traslado) {
-        if (accion === "cancelar" && !confirm("¿Dar de baja el traslado n.º " + traslado.id_traslado + "? Quedará como Cancelado.")) return;
+        if (!sesionUsuario || cambiandoEstado) return;
+        if (accion === "cancelar") {
+          const aviso = traslado.estado === "Programado"
+            ? "Quedará como Cancelado."
+            : "La ambulancia debe volver al origen y seguirá ocupada hasta confirmar su llegada.";
+          if (!confirm("¿Dar de baja el traslado n.º " + traslado.id_traslado + "? " + aviso)) return;
+        }
+        if (accion === "finalizar") {
+          const llegada = traslado.estado === "En regreso por cancelación" ? "al origen y cerrar como Cancelado" :
+            tieneRegreso(traslado) ? "al origen y finalizar la vuelta" : "al destino y finalizar el traslado";
+          if (!confirm("¿Confirmar la llegada " + llegada + " n.º " + traslado.id_traslado + "?")) return;
+        }
+        cambiandoEstado = true;
+        fichasPorId.forEach((ficha, id) => {
+          const actual = traslados.find(dato => String(dato.id_traslado) === id);
+          if (actual) actualizarAccionesFicha(ficha, actual);
+        });
         const datos = new FormData();
         datos.set("accion", accion);
         datos.set("id_traslado", traslado.id_traslado);
@@ -875,12 +1176,25 @@
           mostrarMensaje(resultado.mensaje);
         } catch (error) {
           mostrarMensaje(error.message, true);
+        } finally {
+          cambiandoEstado = false;
+          fichasPorId.forEach((ficha, id) => {
+            const actual = traslados.find(dato => String(dato.id_traslado) === id);
+            if (actual) actualizarAccionesFicha(ficha, actual);
+          });
         }
       }
 
       document.getElementById("botonNuevoTraslado").addEventListener("click", () => abrirFormulario());
       document.getElementById("botonCancelarFormulario").addEventListener("click", cerrarFormulario);
       formulario.elements.id_tipo_carga.addEventListener("change", actualizarCampoPaciente);
+      formulario.elements.ida_vuelta.addEventListener("change", function () {
+        limpiarRutaFormulario();
+        actualizarTipoRecorrido();
+        const recorrido = rutasCalculadas.get(claveUbicaciones(ubicacionesDelFormulario()));
+        if (recorrido && mapaFormulario) mostrarRutaFormulario(recorrido);
+      });
+      formulario.elements.margen_minutos.addEventListener("input", actualizarLlegadaFormulario);
       formulario.elements.salida_prevista.addEventListener("change", actualizarLlegadaFormulario);
       document.getElementById("botonCalcularRuta").addEventListener("click", calcularRutaFormulario);
       document.querySelectorAll("[data-punto]").forEach(function (boton) {
@@ -901,6 +1215,7 @@
       });
       formulario.addEventListener("submit", async function (evento) {
         evento.preventDefault();
+        if (!sesionUsuario) return;
         const botonGuardar = document.getElementById("botonGuardarTraslado");
         botonGuardar.disabled = true;
         const datos = new FormData(formulario);
@@ -917,7 +1232,14 @@
         }
       });
 
-      cargarDatos().catch(error => mostrarMensaje(error.message, true));
+      window.sesionLista.then(function (sesion) {
+        sesionUsuario = sesion;
+        actualizarCreador();
+        return cargarDatos();
+      }).catch(function (error) {
+        if (sesionUsuario) mostrarMensaje(error.message, true);
+      });
+      window.addEventListener("sesion-cerrada", limpiarDatosSesion);
       setInterval(actualizarSeguimiento, 15000);
       document.addEventListener("visibilitychange", () => { if (!document.hidden) actualizarSeguimiento(); });
     </script>

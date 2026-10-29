@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . "/../acceso.php";
+exigirAcceso(["Administrativo"]);
 
 require_once "../conexion.php";
 
@@ -118,5 +120,6 @@ $clasesEstados = [
         </div>
       </section>
     </main>
+    <script src="../../acceso.js" data-modulo="ambulancias"></script>
   </body>
 </html>

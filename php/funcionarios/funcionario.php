@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . "/../acceso.php";
+exigirAcceso(["Administrativo"]);
 
 require_once "../conexion.php";
 
@@ -110,6 +112,7 @@ function escapar($valor)
                   </a>
 
                   <form action="eliminar-funcionario.php" method="POST" style="display: inline;">
+                    <?= campoCsrf() ?>
                     <input type="hidden" name="id" value="<?= $funcionario['id_funcionario'] ?>">
 
                     <button class="boton-rojo boton-accion" type="submit" title="Eliminar funcionario"
@@ -128,6 +131,7 @@ function escapar($valor)
     </section>
   </main>
 
+  <script src="../../acceso.js" data-modulo="funcionarios"></script>
 </body>
 
 </html>

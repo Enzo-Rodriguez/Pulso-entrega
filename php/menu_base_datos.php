@@ -1,4 +1,8 @@
 <?php
+if (PHP_SAPI !== "cli") {
+    http_response_code(403);
+    exit("El menú de base de datos solo se puede ejecutar desde la consola.");
+}
 
 require_once "conexion.php";
 

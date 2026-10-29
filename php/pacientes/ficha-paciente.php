@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . "/../acceso.php";
+exigirAcceso(["Administrativo", "Médico", "Enfermería"]);
 
 require_once "../conexion.php";
 
@@ -90,13 +92,16 @@ $estadoVisible = (int) $paciente["activo"] === 1
         </div>
         <div class="acciones">
           <a class="boton boton-secundario" href="../pacientes/pacientes.php">Volver</a>
+          <?php if (esAdministrativo()): ?>
           <a class="boton" href="editar-pacientes.php?id=<?= escapar($paciente["id_paciente"]) ?>">
             Editar paciente
           </a>
           <form action="eliminar_paciente.php" method="post" onsubmit="return confirm('¿Eliminar este paciente?');">
+            <?= campoCsrf() ?>
             <input type="hidden" name="id" value="<?= escapar($paciente["id_paciente"]) ?>">
             <button class="boton-rojo" type="submit">Eliminar paciente</button>
           </form>
+          <?php endif; ?>
         </div>
       </section>
 
@@ -141,5 +146,6 @@ $estadoVisible = (int) $paciente["activo"] === 1
         </dl>
       </section>
     </main>
+    <script src="../../acceso.js" data-modulo="pacientes"></script>
   </body>
 </html>

@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . "/../acceso.php";
+exigirAcceso(["Administrativo"]);
 
 $mensajeError = "";
 
@@ -106,6 +108,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <?php endif; ?>
 
         <form class="formulario formulario-dos-columnas" action="nuevo-paciente.php" method="post">
+          <?= campoCsrf() ?>
           <label for="nombres">
             Nombre/s
             <input id="nombres" type="text" name="nombres" required>
@@ -172,5 +175,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         </form>
       </section>
     </main>
+    <script src="../../acceso.js" data-modulo="pacientes"></script>
   </body>
 </html>

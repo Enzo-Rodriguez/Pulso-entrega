@@ -45,8 +45,42 @@ function normalizarRutaCalculada(mixed $ruta, mixed $distancia, mixed $duracion)
     ];
 }
 
+// Los tramos permiten distinguir la ida del regreso sin calcular dos rutas separadas.
+function normalizarRutaPorTramos(array $recorrido, bool $idaVuelta = false): array
+{
+    $resultado = normalizarRutaCalculada(
+        $recorrido["geometry"] ?? null,
+        $recorrido["distance"] ?? null,
+        $recorrido["duration"] ?? null
+    );
+    $tramos = $recorrido["legs"] ?? null;
+    if (!is_array($tramos) || !array_is_list($tramos) || count($tramos) !== ($idaVuelta ? 2 : 1)) {
+        throw new RuntimeException("El servicio de recorridos devolvió tramos inválidos.", 502);
+    }
+
+    $medidas = [];
+    foreach ($tramos as $tramo) {
+        if (!is_array($tramo) || !is_numeric($tramo["distance"] ?? null) || !is_numeric($tramo["duration"] ?? null)) {
+            throw new RuntimeException("El servicio de recorridos devolvió medidas de tramo inválidas.", 502);
+        }
+        $distancia = (float) $tramo["distance"];
+        $duracion = (float) $tramo["duration"];
+        if (!is_finite($distancia) || !is_finite($duracion) || $distancia < 0 || $duracion < 0 || ceil($duracion) >= PHP_INT_MAX) {
+            throw new RuntimeException("El servicio de recorridos devolvió medidas de tramo inválidas.", 502);
+        }
+        $medidas[] = ["distancia" => $distancia, "duracion" => (int) ceil($duracion)];
+    }
+
+    $resultado["ida_vuelta"] = $idaVuelta ? 1 : 0;
+    $resultado["distancia_ida_metros"] = $medidas[0]["distancia"];
+    $resultado["duracion_ida_segundos"] = $medidas[0]["duracion"];
+    $resultado["distancia_regreso_metros"] = $idaVuelta ? $medidas[1]["distancia"] : 0;
+    $resultado["duracion_regreso_segundos"] = $idaVuelta ? $medidas[1]["duracion"] : 0;
+    return $resultado;
+}
+
 // OSRM recibe longitud,latitud; el GeoJSON mantiene ese mismo orden.
-function calcularRutaTraslado(float $origenLatitud, float $origenLongitud, float $destinoLatitud, float $destinoLongitud): array
+function calcularRutaTraslado(float $origenLatitud, float $origenLongitud, float $destinoLatitud, float $destinoLongitud, bool $idaVuelta = false): array
 {
     if (
         !is_finite($origenLatitud) || !is_finite($origenLongitud) ||
@@ -60,14 +94,15 @@ function calcularRutaTraslado(float $origenLatitud, float $origenLongitud, float
         throw new RuntimeException("El servidor necesita cURL para calcular recorridos.", 503);
     }
 
-    $puntos = number_format($origenLongitud, 7, ".", "") . "," . number_format($origenLatitud, 7, ".", "") . ";" .
-        number_format($destinoLongitud, 7, ".", "") . "," . number_format($destinoLatitud, 7, ".", "");
+    $puntoOrigen = number_format($origenLongitud, 7, ".", "") . "," . number_format($origenLatitud, 7, ".", "");
+    $puntoDestino = number_format($destinoLongitud, 7, ".", "") . "," . number_format($destinoLatitud, 7, ".", "");
+    $puntos = $puntoOrigen . ";" . $puntoDestino . ($idaVuelta ? ";" . $puntoOrigen : "");
     $parametros = http_build_query([
         "overview" => "full",
         "geometries" => "geojson",
         "steps" => "false",
         "alternatives" => "false",
-        "radiuses" => "1000;1000",
+        "radiuses" => $idaVuelta ? "1000;1000;1000" : "1000;1000",
     ], "", "&", PHP_QUERY_RFC3986);
     $consultaRuta = curl_init("https://router.project-osrm.org/route/v1/driving/" . $puntos . "?" . $parametros);
     $contenidoRuta = "";
@@ -129,5 +164,5 @@ function calcularRutaTraslado(float $origenLatitud, float $origenLongitud, float
     }
 
     $recorrido = $datosRuta["routes"][0];
-    return normalizarRutaCalculada($recorrido["geometry"] ?? null, $recorrido["distance"] ?? null, $recorrido["duration"] ?? null);
+    return normalizarRutaPorTramos($recorrido, $idaVuelta);
 }

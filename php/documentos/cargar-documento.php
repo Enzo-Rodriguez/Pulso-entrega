@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . "/../acceso.php";
+exigirAcceso(["Administrativo"]);
 require_once "../conexion.php";
 
 $mensajeError = "";
@@ -115,6 +117,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <?php endif; ?>
 
             <form class="formulario" action="cargar-documento.php" method="post" enctype="multipart/form-data">
+                <?= campoCsrf() ?>
                 <label for="titulo">
                     Título del documento
                     <input type="text" id="titulo" name="titulo" value="<?= escapar($titulo) ?>" maxlength="200" required>
@@ -132,6 +135,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             </form>
         </section>
     </main>
+    <script src="../../acceso.js" data-modulo="documentos"></script>
 </body>
 
 </html>

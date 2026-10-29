@@ -9,12 +9,11 @@
     <link rel="icon" type="image/png" href="../../recursos/logo-pulsoA.png">
   </head>
   <body>
-    <header class="barra-superior barra-chofer">
-      <a class="marca" href="../../panel.html">
+    <header class="barra-superior barra-chofer acciones">
+      <a class="marca" href="chofer.html">
         <img src="../../recursos/logo-pulsoA.png" alt="">
         <span>PULSO</span>
       </a>
-      <a class="boton boton-secundario" href="traslados.html">Ver traslados</a>
     </header>
 
     <main class="pagina pagina-chofer">
@@ -22,31 +21,28 @@
         <div>
           <p class="subtitulo">Vista del chofer</p>
           <h1>Mis traslados</h1>
-          <p>Consultá tus asignaciones y registrá la salida y la llegada.</p>
+          <p>Consultá tus asignaciones y registrá cada etapa del recorrido.</p>
         </div>
       </section>
 
-      <section class="tarjeta seleccion-chofer">
-        <p class="aviso-demo">Demostración sin inicio de sesión: el selector no verifica la identidad del conductor. No usar como acceso seguro a datos reales.</p>
-        <div class="formulario">
-          <label for="conductor">Seleccionar conductor
-            <select id="conductor" disabled><option value="">Cargando conductores...</option></select>
-          </label>
-          <button id="botonActualizar" class="boton boton-secundario" type="button">Actualizar</button>
-        </div>
+      <section class="tarjeta seleccion-chofer" aria-label="Conductor de la sesión">
+        <p class="subtitulo">Conductor</p>
+        <h2 id="nombreConductor" data-usuario>Cargando sesión...</h2>
+        <p>Se muestran únicamente los traslados asignados a tu usuario.</p>
+        <button id="botonActualizar" class="boton boton-secundario" type="button" disabled>Actualizar</button>
       </section>
 
       <p id="mensajeChofer" class="mensaje-chofer" role="status" hidden></p>
 
       <section class="tarjeta seguimiento-chofer" aria-labelledby="tituloSeguimiento">
         <h2 id="tituloSeguimiento">Compartir ubicación</h2>
-        <p>Después de iniciar un traslado, activá su GPS. Se guarda una posición cada 15 segundos en el historial del traslado.</p>
+        <p>Después de iniciar un traslado, activá su GPS. Se guarda una posición cada 15 segundos durante la ida, la espera en destino y la vuelta, mientras esta pantalla permanezca visible.</p>
         <p id="estadoGps" role="status">GPS detenido. Todavía no estás compartiendo tu ubicación.</p>
         <button id="botonDetenerGps" class="boton-rojo" type="button" hidden>Detener GPS</button>
         <p class="nota-chofer">Mantené esta pantalla abierta y visible. El navegador puede suspender el GPS al bloquear el celular o cambiar de aplicación. Requiere permiso de ubicación y HTTPS (o localhost para probar en esta computadora).</p>
       </section>
 
-      <p id="cantidadAsignados">Elegí un conductor para ver sus traslados.</p>
+      <p id="cantidadAsignados">Comprobando acceso a tus traslados...</p>
       <section id="listaAsignados" class="lista-asignados" aria-label="Traslados del conductor"></section>
     </main>
 
@@ -59,6 +55,9 @@
         <dl class="datos-chofer">
           <div class="dato-completo"><dt>Origen</dt><dd data-campo="origen"></dd></div>
           <div class="dato-completo"><dt>Destino</dt><dd data-campo="destino"></dd></div>
+          <div><dt>Tipo de recorrido</dt><dd data-campo="tipo_recorrido"></dd></div>
+          <div><dt>Margen por espera/descarga</dt><dd data-campo="margen_minutos"></dd></div>
+          <div class="dato-completo" data-regreso hidden><dt>Regreso al origen</dt><dd data-campo="regreso_origen"></dd></div>
           <div><dt>Ambulancia</dt><dd data-campo="matricula"></dd></div>
           <div><dt>Prioridad</dt><dd data-campo="prioridad"></dd></div>
           <div><dt>Tipo de carga</dt><dd data-campo="tipo_carga"></dd></div>
@@ -66,9 +65,13 @@
           <div><dt>Acompañante</dt><dd data-campo="nombre_acompanante"></dd></div>
           <div><dt>Salida prevista</dt><dd data-campo="salida_prevista"></dd></div>
           <div><dt>Salida real</dt><dd data-campo="salida_real"></dd></div>
-          <div><dt>Llegada real</dt><dd data-campo="llegada_real"></dd></div>
+          <div data-llegada-destino hidden><dt>Llegada al destino</dt><dd data-campo="llegada_destino"></dd></div>
+          <div data-inicio-regreso hidden><dt>Comienzo de la vuelta</dt><dd data-campo="inicio_regreso"></dd></div>
+          <div><dt data-etiqueta-cierre>Finalizado</dt><dd data-campo="llegada_real"></dd></div>
           <div class="dato-completo" data-descripcion><dt>Descripción</dt><dd data-campo="descripcion_carga"></dd></div>
         </dl>
+        <p class="nota-chofer" data-espera hidden>Estás en destino. El traslado sigue abierto y podés mantener el GPS activo mientras esperás para regresar.</p>
+        <p class="nota-chofer" data-aviso-cancelacion hidden>Se solicitó cancelar el traslado. Volvé al origen y registrá la llegada para completar la cancelación. Mantené el GPS activo durante el regreso.</p>
         <div class="acciones acciones-chofer">
           <button class="boton" data-accion="avanzar" type="button" hidden></button>
           <button class="boton boton-secundario" data-accion="gps" type="button" hidden>Compartir ubicación</button>
@@ -76,10 +79,12 @@
       </article>
     </template>
 
+    <script src="../../acceso.js" data-modulo="chofer"></script>
     <script>
-      const selectorConductor = document.getElementById("conductor");
+      const nombreConductor = document.getElementById("nombreConductor");
       const listaAsignados = document.getElementById("listaAsignados");
       const estadoGps = document.getElementById("estadoGps");
+      let sesionUsuario = null;
       let traslados = [];
       let cargando = false;
       let cambiandoEstado = false;
@@ -89,19 +94,53 @@
       let ultimaPosicion = null;
       let envioGps = null;
 
+      const estadosActivos = ["En curso", "En destino", "En regreso", "En regreso por cancelación"];
+      const ordenEstados = [...estadosActivos, "Programado", "Finalizado", "Cancelado"];
       const clasesEstado = {
         "Programado": "estado-observacion", "En curso": "estado-alta",
+        "En destino": "estado-observacion", "En regreso": "estado-alta",
+        "En regreso por cancelación": "estado-observacion",
         "Finalizado": "estado-estable", "Cancelado": "estado-inactivo"
       };
 
+      function tieneRegreso(traslado) {
+        return Number(traslado.ida_vuelta) === 1 || traslado.estado === "En regreso por cancelación" ||
+          (traslado.estado === "Cancelado" && Boolean(traslado.salida_real));
+      }
+
+      function siguientePaso(traslado) {
+        if (traslado.estado === "Programado") return { accion: "iniciar", texto: "Iniciar" };
+        if (traslado.estado === "En curso") {
+          return Number(traslado.ida_vuelta) === 1
+            ? { accion: "llegar_destino", texto: "Llegué al destino" }
+            : { accion: "finalizar", texto: "Finalizar" };
+        }
+        if (traslado.estado === "En destino") return { accion: "iniciar_regreso", texto: "Comenzar vuelta" };
+        if (traslado.estado === "En regreso") return { accion: "finalizar", texto: "Finalizar vuelta" };
+        if (traslado.estado === "En regreso por cancelación") return { accion: "finalizar", texto: "Llegué al origen" };
+        return null;
+      }
+
       function mostrarMensaje(texto, esError = false) {
+        if (!sesionUsuario) return;
         const mensaje = document.getElementById("mensajeChofer");
         mensaje.textContent = texto;
         mensaje.className = "mensaje-chofer estado " + (esError ? "estado-critico" : "estado-estable");
         mensaje.hidden = false;
       }
 
+      function limpiarDatosSesion() {
+        sesionUsuario = null;
+        traslados = [];
+        detenerGps("Sesión no disponible. GPS detenido.");
+        nombreConductor.textContent = "Sesión no disponible";
+        document.getElementById("mensajeChofer").hidden = true;
+        document.getElementById("botonActualizar").disabled = true;
+      }
+
       async function solicitar(url, datos = null, controlador = null) {
+        if (!sesionUsuario) throw new Error("La sesión no está disponible.");
+        if (datos) datos.set("csrf", sesionUsuario.csrf);
         const consulta = controlador || new AbortController();
         let agotado = false;
         const tiempoLimite = setTimeout(() => { agotado = true; consulta.abort(); }, 12000);
@@ -110,7 +149,13 @@
             method: datos ? "POST" : "GET", body: datos,
             cache: "no-store", signal: consulta.signal
           });
-          const resultado = await respuesta.json();
+          const resultado = await respuesta.json().catch(() => ({ error: "El servidor devolvió una respuesta no válida." }));
+          if ([401, 403].includes(respuesta.status)) {
+            limpiarDatosSesion();
+            window.manejarAccesoDenegado(respuesta, resultado);
+            throw new Error("La sesión no está disponible.");
+          }
+          if (!sesionUsuario) throw new Error("La sesión no está disponible.");
           if (!respuesta.ok) {
             const error = new Error(resultado.error || "No se pudo completar la operación.");
             error.codigo = respuesta.status;
@@ -127,16 +172,14 @@
 
       function mostrarAsignados() {
         listaAsignados.replaceChildren();
-        if (!selectorConductor.value) {
-          document.getElementById("cantidadAsignados").textContent = "Elegí un conductor para ver sus traslados.";
+        if (!sesionUsuario) {
+          document.getElementById("cantidadAsignados").textContent = "Ingresá al sistema para consultar tus traslados.";
           return;
         }
-        const asignados = traslados.filter(traslado => String(traslado.id_conductor) === selectorConductor.value);
-        // Los pendientes y en curso aparecen antes que los registros cerrados.
-        asignados.sort((primero, segundo) => {
-          const orden = { "En curso": 0, "Programado": 1, "Finalizado": 2, "Cancelado": 3 };
-          return orden[primero.estado] - orden[segundo.estado];
-        });
+        const idConductor = String(sesionUsuario.funcionario.id_funcionario);
+        const asignados = traslados.filter(traslado => String(traslado.id_conductor) === idConductor);
+        // Las etapas activas y los pendientes aparecen antes que los registros cerrados.
+        asignados.sort((primero, segundo) => ordenEstados.indexOf(primero.estado) - ordenEstados.indexOf(segundo.estado));
         document.getElementById("cantidadAsignados").textContent = asignados.length
           ? asignados.length + " traslado(s) asignado(s)." : "Este conductor no tiene traslados asignados.";
         asignados.forEach(function (traslado) {
@@ -148,20 +191,41 @@
           });
           ficha.querySelector('[data-campo="nombre_paciente"]').textContent = traslado.nombre_paciente || "No corresponde";
           ficha.querySelector('[data-campo="nombre_acompanante"]').textContent = traslado.nombre_acompanante || "Sin acompañante";
-          ["salida_real", "llegada_real"].forEach(campo => {
+          const idaYVuelta = Number(traslado.ida_vuelta) === 1;
+          const regreso = tieneRegreso(traslado);
+          const porCancelacion = ["En regreso por cancelación", "Cancelado"].includes(traslado.estado);
+          ficha.querySelector('[data-campo="tipo_recorrido"]').textContent = idaYVuelta ? "Ida y vuelta" : "Solo ida";
+          const margen = traslado.margen_minutos;
+          ficha.querySelector('[data-campo="margen_minutos"]').textContent = Number.isInteger(margen) && margen >= 0 && margen <= 1440
+            ? margen + " min" : "Sin dato";
+          ficha.querySelector("[data-regreso]").hidden = !regreso;
+          ficha.querySelector('[data-campo="regreso_origen"]').textContent = traslado.origen;
+          ficha.querySelector("[data-llegada-destino]").hidden = !idaYVuelta;
+          ficha.querySelector("[data-inicio-regreso]").hidden = !regreso;
+          const tituloCierre = porCancelacion ? "Cierre por cancelación" : "Finalizado";
+          ficha.querySelector("[data-etiqueta-cierre]").textContent = regreso
+            ? tituloCierre + " (llegada al origen)"
+            : porCancelacion ? tituloCierre : tituloCierre + " (llegada al destino)";
+          ficha.querySelector("[data-espera]").hidden = traslado.estado !== "En destino";
+          ficha.querySelector("[data-aviso-cancelacion]").hidden = traslado.estado !== "En regreso por cancelación";
+          ["salida_real", "llegada_destino", "inicio_regreso", "llegada_real"].forEach(campo => {
             ficha.querySelector('[data-campo="' + campo + '"]').textContent = traslado[campo] || "Pendiente";
           });
+          if (traslado.estado === "Cancelado" && !traslado.salida_real && !traslado.llegada_real) {
+            ficha.querySelector('[data-campo="llegada_real"]').textContent = "No corresponde: no se registró salida.";
+          }
           ficha.querySelector("[data-descripcion]").hidden = !traslado.descripcion_carga;
           const estado = ficha.querySelector('[data-campo="estado"]');
           estado.textContent = traslado.estado;
           estado.classList.add(clasesEstado[traslado.estado] || "estado-inactivo");
           const botonAvanzar = ficha.querySelector('[data-accion="avanzar"]');
           const botonGps = ficha.querySelector('[data-accion="gps"]');
-          botonAvanzar.hidden = !["Programado", "En curso"].includes(traslado.estado);
+          const paso = siguientePaso(traslado);
+          botonAvanzar.hidden = !paso;
           botonAvanzar.disabled = cambiandoEstado || cargando;
-          botonAvanzar.textContent = traslado.estado === "Programado" ? "Iniciar" : "Finalizar";
+          botonAvanzar.textContent = paso?.texto || "";
           botonAvanzar.addEventListener("click", () => cambiarEstado(traslado));
-          botonGps.hidden = traslado.estado !== "En curso";
+          botonGps.hidden = !estadosActivos.includes(traslado.estado);
           const gpsActivo = seguimiento?.idTraslado === String(traslado.id_traslado);
           botonGps.disabled = cambiandoEstado || cargando || gpsActivo;
           botonGps.textContent = gpsActivo ? "GPS activo" : "Compartir ubicación";
@@ -171,24 +235,17 @@
       }
 
       async function cargarDatos() {
-        if (cargando || cambiandoEstado) return;
+        if (!sesionUsuario || cargando || cambiandoEstado) return;
         cargando = true;
-        selectorConductor.disabled = true;
         mostrarAsignados();
         document.getElementById("botonActualizar").disabled = true;
         try {
           const datos = await solicitar("traslados.php");
+          if (!sesionUsuario) return;
           traslados = datos.traslados;
-          const conductorElegido = selectorConductor.value;
-          selectorConductor.replaceChildren(new Option("Seleccionar conductor", ""));
-          datos.opciones.funcionarios.filter(funcionario => funcionario.tipo === "Conductor").forEach(funcionario => {
-            selectorConductor.add(new Option(funcionario.nombre, funcionario.id_funcionario));
-          });
-          selectorConductor.value = conductorElegido;
-          selectorConductor.disabled = false;
           if (seguimiento) {
             const trasladoActual = traslados.find(traslado => String(traslado.id_traslado) === seguimiento.idTraslado);
-            if (!trasladoActual || trasladoActual.estado !== "En curso" || String(trasladoActual.id_conductor) !== selectorConductor.value) {
+            if (!trasladoActual || !estadosActivos.includes(trasladoActual.estado) || String(trasladoActual.id_conductor) !== String(sesionUsuario.funcionario.id_funcionario)) {
               detenerGps("GPS detenido: cambió la asignación o el estado del traslado.");
             }
           }
@@ -197,23 +254,27 @@
           mostrarMensaje(error.message, true);
         } finally {
           cargando = false;
-          selectorConductor.disabled = false;
           mostrarAsignados();
-          document.getElementById("botonActualizar").disabled = false;
+          document.getElementById("botonActualizar").disabled = !sesionUsuario;
         }
       }
 
       async function cambiarEstado(traslado) {
-        if (cambiandoEstado || cargando) return;
-        const accion = traslado.estado === "Programado" ? "iniciar" : "finalizar";
-        if (accion === "finalizar" && !confirm("¿Finalizar el traslado n.º " + traslado.id_traslado + " y registrar la llegada?")) return;
+        if (!sesionUsuario || cambiandoEstado || cargando) return;
+        const paso = siguientePaso(traslado);
+        if (!paso) return;
+        const accion = paso.accion;
+        if (accion === "finalizar") {
+          const lugarLlegada = tieneRegreso(traslado) ? "al origen" : "al destino";
+          const cierre = traslado.estado === "En regreso por cancelación" ? "completar la cancelación" : "finalizar el traslado";
+          if (!confirm("¿Registrar la llegada " + lugarLlegada + " del traslado n.º " + traslado.id_traslado + " y " + cierre + "?")) return;
+        }
         cambiandoEstado = true;
-        selectorConductor.disabled = true;
         mostrarAsignados();
         const datos = new FormData();
         datos.set("accion", accion);
         datos.set("id_traslado", traslado.id_traslado);
-        datos.set("id_conductor", selectorConductor.value);
+        datos.set("id_conductor", sesionUsuario.funcionario.id_funcionario);
         try {
           const resultado = await solicitar("traslados.php", datos);
           if (accion === "finalizar" && seguimiento?.idTraslado === String(traslado.id_traslado)) detenerGps();
@@ -222,7 +283,6 @@
           mostrarMensaje(error.message, true);
         } finally {
           cambiandoEstado = false;
-          selectorConductor.disabled = false;
           await cargarDatos();
         }
       }
@@ -241,12 +301,13 @@
       }
 
       function iniciarGps(traslado) {
+        if (!sesionUsuario || cambiandoEstado || cargando || !estadosActivos.includes(traslado.estado)) return;
         if (!window.isSecureContext || !navigator.geolocation) {
           mostrarMensaje("El GPS necesita HTTPS y un navegador compatible. Para probar en esta computadora usá localhost.", true);
           return;
         }
         detenerGps();
-        const sesion = { idTraslado: String(traslado.id_traslado), idConductor: selectorConductor.value };
+        const sesion = { idTraslado: String(traslado.id_traslado), idConductor: String(sesionUsuario.funcionario.id_funcionario) };
         seguimiento = sesion;
         estadoGps.textContent = "Traslado n.º " + sesion.idTraslado + ": esperando permiso y una ubicación GPS...";
         document.getElementById("botonDetenerGps").hidden = false;
@@ -308,12 +369,10 @@
         }
       }
 
-      selectorConductor.addEventListener("change", function () {
-        detenerGps("GPS detenido al cambiar de conductor. Elegí un traslado para volver a compartir ubicación.");
-      });
       document.getElementById("botonActualizar").addEventListener("click", cargarDatos);
       document.getElementById("botonDetenerGps").addEventListener("click", () => detenerGps());
-      window.addEventListener("pagehide", () => detenerGps());
+      window.addEventListener("sesion-cerrada", limpiarDatosSesion);
+      window.addEventListener("pagehide", () => { if (seguimiento) detenerGps(); });
       document.addEventListener("visibilitychange", function () {
         if (document.hidden && seguimiento) estadoGps.textContent = "Envío pausado: volvé a esta pantalla para continuar compartiendo ubicación.";
         if (!document.hidden) {
@@ -322,7 +381,13 @@
         }
       });
       setInterval(() => { if (!document.hidden) cargarDatos(); }, 15000);
-      cargarDatos();
+      window.sesionLista.then(function (sesion) {
+        sesionUsuario = sesion;
+        nombreConductor.textContent = [sesion.funcionario.nombre, sesion.funcionario.apellidos].filter(Boolean).join(" ");
+        return cargarDatos();
+      }).catch(function (error) {
+        if (sesionUsuario) mostrarMensaje(error.message, true);
+      });
     </script>
   </body>
 </html>

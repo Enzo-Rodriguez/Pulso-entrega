@@ -1,4 +1,9 @@
 <?php
+if (PHP_SAPI !== "cli") {
+    http_response_code(403);
+    exit("Esta tarea de mantenimiento solo se puede ejecutar desde la consola.");
+}
+
 require_once "../conexion.php";
 
 $consulta = $conexion->query(

@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . "/../acceso.php";
+exigirAcceso(["Administrativo", "Médico", "Enfermería"]);
 
 require_once "../conexion.php";
 
@@ -109,5 +111,6 @@ function escapar($contenido): string
         });
       }
     </script>
+    <script src="../../acceso.js" data-modulo="documentos"></script>
   </body>
 </html>

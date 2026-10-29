@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . "/../acceso.php";
+exigirAcceso(["Administrativo"]);
 
 require_once "../conexion.php";
 
@@ -99,6 +101,7 @@ function escapar($valor): string
                         Actualizar
                       </a>
                       <form action="eliminar_equipamientos.php" method="post" onsubmit="return confirm('¿Eliminar este equipamiento?');">
+                        <?= campoCsrf() ?>
                         <input type="hidden" name="id" value="<?= escapar($equipamiento["id_equipamiento"]) ?>">
                         <button class="boton-rojo boton-accion" type="submit" title="Eliminar equipamiento" aria-label="Eliminar equipamiento">
                           <img class="icono-boton" src="../../recursos/eliminar.png" alt="">
@@ -113,6 +116,7 @@ function escapar($valor): string
         </div>
       </section>
     </main>
+    <script src="../../acceso.js" data-modulo="equipamientos"></script>
   </body>
 </html>
 

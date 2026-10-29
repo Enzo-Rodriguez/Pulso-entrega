@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . "/../acceso.php";
+exigirAcceso(["Administrativo", "Médico", "Enfermería"]);
 
 require_once "../conexion.php";
 
@@ -69,9 +71,11 @@ $estados = [
           <h1>Pacientes</h1>
           <p>Personas registradas en el sistema PULSO.</p>
         </div>
-        <div class="acciones">
-          <a class="boton" href="nuevo-paciente.php">Nuevo paciente</a>
-        </div>
+        <?php if (esAdministrativo()): ?>
+          <div class="acciones">
+            <a class="boton" href="nuevo-paciente.php">Nuevo paciente</a>
+          </div>
+        <?php endif; ?>
       </section>
 
       <section class="tarjeta">
@@ -124,5 +128,6 @@ $estados = [
       </section>
     </main>
 
+    <script src="../../acceso.js" data-modulo="pacientes"></script>
   </body>
 </html>

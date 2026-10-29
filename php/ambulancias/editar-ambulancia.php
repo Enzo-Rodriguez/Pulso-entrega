@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . "/../acceso.php";
+exigirAcceso(["Administrativo"]);
 
 require_once "../conexion.php";
 
@@ -107,6 +109,7 @@ function escapar($valor): string
         <?php endif; ?>
 
         <form class="formulario formulario-dos-columnas" action="editar-ambulancia.php?matricula=<?= urlencode($matricula) ?>" method="post">
+          <?= campoCsrf() ?>
           <label for="matricula">
             Matrícula
             <input id="matricula" type="text" value="<?= escapar($matricula) ?>" readonly>
@@ -146,5 +149,6 @@ function escapar($valor): string
         </form>
       </section>
     </main>
+    <script src="../../acceso.js" data-modulo="ambulancias"></script>
   </body>
 </html>

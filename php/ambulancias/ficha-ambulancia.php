@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . "/../acceso.php";
+exigirAcceso(["Administrativo"]);
 
 require_once "../conexion.php";
 
@@ -79,6 +81,7 @@ $estadoVisible = (int) $ambulancia["activa"] === 1
             Editar ambulancia
           </a>
           <form action="eliminar_ambulancia.php" method="post" onsubmit="return confirm('¿Eliminar esta ambulancia?');">
+            <?= campoCsrf() ?>
             <input type="hidden" name="matricula" value="<?= escapar($ambulancia["matricula"]) ?>">
             <button class="boton-rojo" type="submit">Eliminar ambulancia</button>
           </form>
@@ -110,5 +113,6 @@ $estadoVisible = (int) $ambulancia["activa"] === 1
         </dl>
       </section>
     </main>
+    <script src="../../acceso.js" data-modulo="ambulancias"></script>
   </body>
 </html>

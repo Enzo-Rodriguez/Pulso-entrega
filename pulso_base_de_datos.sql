@@ -128,6 +128,8 @@ CREATE TABLE IF NOT EXISTS traslado (
     id_tipo_carga INT NOT NULL,
     id_tipo_prioridad INT NOT NULL,
     id_estado_traslado INT NOT NULL,
+    ida_vuelta TINYINT NOT NULL DEFAULT 0,
+    margen_minutos INT NOT NULL DEFAULT 0,
     descripcion_carga VARCHAR(255),
     origen VARCHAR(200) NOT NULL,
     destino VARCHAR(200) NOT NULL,
@@ -137,6 +139,8 @@ CREATE TABLE IF NOT EXISTS traslado (
     destino_longitud DECIMAL(10,7) NULL DEFAULT NULL,
     salida_prevista DATETIME NOT NULL,
     salida_real DATETIME,
+    llegada_destino DATETIME NULL,
+    inicio_regreso DATETIME NULL,
     llegada_real DATETIME,
     PRIMARY KEY (id_traslado),
     FOREIGN KEY (id_paciente) REFERENCES paciente(id_paciente),
@@ -201,5 +205,8 @@ INSERT INTO estado_traslado (nombre) VALUES
     ('Programado'),
     ('En curso'),
     ('Finalizado'),
-    ('Cancelado')
+    ('Cancelado'),
+    ('En destino'),
+    ('En regreso'),
+    ('En regreso por cancelación')
 ON DUPLICATE KEY UPDATE nombre = VALUES(nombre);

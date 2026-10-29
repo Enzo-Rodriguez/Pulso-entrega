@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . "/../acceso.php";
+exigirAcceso(["Administrativo"]);
 
 require_once "../conexion.php";
 
@@ -80,6 +82,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <?php endif; ?>
 
         <form class="formulario formulario-dos-columnas" action="nuevo-equipamientos.php" method="post">
+          <?= campoCsrf() ?>
           <label for="nombre">
             Nombre
             <input id="nombre" type="text" name="nombre" value="<?= escapar($nombre) ?>" maxlength="100" required>
@@ -97,5 +100,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         </form>
       </section>
     </main>
+    <script src="../../acceso.js" data-modulo="equipamientos"></script>
   </body>
 </html>
