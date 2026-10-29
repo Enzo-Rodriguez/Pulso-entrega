@@ -1,0 +1,103 @@
+.panel-administrativo {
+  display: grid;
+  gap: 22px;
+}
+
+.panel-administrativo[hidden],
+.consultas-panel[hidden],
+.mensaje-panel[hidden],
+#botonActualizarPanel[hidden] {
+  display: none;
+}
+
+.resumen-panel {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.indicador-panel {
+  border-top: 4px solid var(--verde);
+}
+
+.indicador-panel h2 {
+  min-height: 38px;
+  margin-bottom: 14px;
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.indicador-panel .valor-panel {
+  margin: 0 0 8px;
+  color: var(--azul);
+  font-size: 38px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.indicador-panel > p:last-child {
+  margin-bottom: 0;
+  font-size: 12px;
+}
+
+.cabecera-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.cabecera-panel p {
+  margin-bottom: 0;
+  font-size: 13px;
+}
+
+.tabla-panel {
+  min-width: 750px;
+}
+
+.tabla-panel td {
+  max-width: 230px;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+}
+
+.tabla-panel .fila-vacia-panel {
+  max-width: none;
+  padding: 28px 14px;
+  color: var(--texto-suave);
+  text-align: center;
+}
+
+.actualizacion-panel {
+  margin: 0;
+  font-size: 12px;
+  text-align: right;
+}
+
+.consultas-panel {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 960px) {
+  .resumen-panel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 540px) {
+  .resumen-panel,
+  .consultas-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .cabecera-panel {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .accesos-panel .acciones a {
+    width: 100%;
+  }
+}

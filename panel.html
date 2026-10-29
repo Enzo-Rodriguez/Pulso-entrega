@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>PULSO - Panel</title>
     <link rel="stylesheet" href="css/estilos.css">
+    <link rel="stylesheet" href="css/panel.css">
     <link rel="icon" type="image/png" href="recursos/logo-pulsoA.png">
   </head>
   <body>
@@ -29,39 +30,82 @@
       <section class="encabezado-pagina">
         <div>
           <p class="subtitulo">Panel principal</p>
-          <h1>PULSO</h1>
+          <h1>Panel</h1>
           <p data-usuario></p>
-          <p>Acceso a los módulos del sistema.</p>
+          <p>Tu espacio de trabajo en PULSO.</p>
         </div>
+        <button id="botonActualizarPanel" class="boton boton-secundario" type="button" hidden disabled>Actualizar</button>
       </section>
 
-      <section class="rejilla">
+      <p id="mensajePanel" class="estado mensaje-panel" role="status" hidden></p>
+
+      <div id="panelAdministrativo" class="panel-administrativo" hidden>
+        <section class="resumen-panel" aria-label="Resumen de traslados y disponibilidad" aria-busy="true">
+          <article class="tarjeta indicador-panel">
+            <h2>Traslados programados</h2>
+            <p id="totalProgramados" class="valor-panel">—</p>
+            <p>Pendientes de iniciar</p>
+          </article>
+          <article class="tarjeta indicador-panel">
+            <h2>Traslados activos</h2>
+            <p id="totalActivos" class="valor-panel">—</p>
+            <p>En viaje, en destino o regresando</p>
+          </article>
+          <article class="tarjeta indicador-panel">
+            <h2>Ambulancias disponibles</h2>
+            <p id="totalAmbulancias" class="valor-panel">—</p>
+            <p>Activas y sin un traslado activo</p>
+          </article>
+          <article class="tarjeta indicador-panel">
+            <h2>Conductores disponibles</h2>
+            <p id="totalConductores" class="valor-panel">—</p>
+            <p>Activos y sin un traslado activo</p>
+          </article>
+        </section>
+
+        <section class="tarjeta actividad-panel" aria-labelledby="tituloActivos">
+          <div class="cabecera-panel">
+            <div>
+              <h2 id="tituloActivos">Traslados activos</h2>
+              <p id="detalleActivos">Cargando traslados...</p>
+            </div>
+            <a class="boton boton-secundario boton-accion" href="php/traslados/traslados.html">Ver traslados</a>
+          </div>
+          <div class="contenedor-tabla">
+            <table class="tabla tabla-panel">
+              <thead>
+                <tr><th scope="col">Origen</th><th scope="col">Destino</th><th scope="col">Chofer</th><th scope="col">Ambulancia</th><th scope="col">Estado</th></tr>
+              </thead>
+              <tbody id="listaActivosPanel">
+                <tr><td class="fila-vacia-panel" colspan="5">Cargando traslados...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="tarjeta accesos-panel" aria-labelledby="tituloAccesos">
+          <h2 id="tituloAccesos">Accesos rápidos</h2>
+          <div class="acciones">
+            <a class="boton" href="php/traslados/traslados.html?nuevo=1">Registrar traslado</a>
+            <a class="boton boton-secundario" href="php/documentos/cargar-documento.php">Cargar documento</a>
+            <a class="boton boton-secundario" href="php/pacientes/nuevo-paciente.php">Registrar paciente</a>
+          </div>
+        </section>
+        <p id="actualizacionPanel" class="actualizacion-panel" role="status">Comprobando datos...</p>
+      </div>
+
+      <section id="consultasPanel" class="rejilla consultas-panel" aria-label="Módulos de consulta" hidden>
         <a class="tarjeta modulo" href="php/pacientes/pacientes.php">
           <h2>Pacientes</h2>
-          <p>Registrar y consultar pacientes.</p>
+          <p>Consultar pacientes.</p>
         </a>
         <a class="tarjeta modulo" href="php/documentos/documentos.php">
           <h2>Documentos</h2>
-          <p>Registrar y administrar documentos.</p>
-        </a>
-        <a class="tarjeta modulo" href="php/ambulancias/ambulancia.php">
-          <h2>Ambulancias</h2>
-          <p>Registrar y administrar ambulancias.</p>
-        </a>
-        <a class="tarjeta modulo" href="php/funcionarios/funcionario.php">
-          <h2>Funcionarios</h2>
-          <p>Registrar y administrar funcionarios.</p>
-        </a>
-        <a class="tarjeta modulo" href="php/equipamientos/equipamientos.php">
-          <h2>Equipamientos</h2>
-          <p>Registrar y administrar equipamientos.</p>
-        </a>
-        <a class="tarjeta modulo" href="php/traslados/traslados.html">
-          <h2>Traslados</h2>
-          <p>Registrar y administrar traslados.</p>
+          <p>Consultar documentos y sus códigos QR.</p>
         </a>
       </section>
     </main>
     <script src="acceso.js" data-modulo="panel"></script>
+    <script src="panel.js"></script>
   </body>
 </html>

@@ -1232,10 +1232,16 @@
         }
       });
 
-      window.sesionLista.then(function (sesion) {
+      window.sesionLista.then(async function (sesion) {
         sesionUsuario = sesion;
         actualizarCreador();
-        return cargarDatos();
+        await cargarDatos();
+        const enlace = new URL(location.href);
+        if (sesionUsuario && enlace.searchParams.get("nuevo") === "1") {
+          enlace.searchParams.delete("nuevo");
+          history.replaceState(history.state, "", enlace);
+          abrirFormulario();
+        }
       }).catch(function (error) {
         if (sesionUsuario) mostrarMensaje(error.message, true);
       });
