@@ -70,11 +70,14 @@ window.sesionLista = (async function () {
     if (document.documentElement.style.visibility === 'hidden') {
       // Nunca se muestra una pantalla privada si falla la comprobación de sesión.
       const aviso = document.createElement('p');
-      aviso.textContent = 'No se pudo comprobar el acceso. Volvé al inicio para ingresar.';
+      const archivoLocal = location.protocol === 'file:';
+      aviso.textContent = archivoLocal
+        ? 'Este proyecto necesita PHP y MySQL. Abrilo desde la dirección local del servidor, no haciendo doble clic en el archivo HTML.'
+        : 'No se pudo comprobar el acceso. Volvé al inicio para ingresar.';
       const volver = document.createElement('a');
       volver.href = new URL('index.html', raizPulso);
       volver.textContent = 'Ir al inicio';
-      document.body.replaceChildren(aviso, volver);
+      document.body.replaceChildren(...(archivoLocal ? [aviso] : [aviso, volver]));
       document.documentElement.style.visibility = '';
     }
     throw error;
